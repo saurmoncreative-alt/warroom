@@ -34,6 +34,13 @@ function makeClusterId() {
   return "CL-" + randomInt(1000, 9999);
 }
 
+const severityColor = (level: string) => {
+  if (level === "CRITICAL") return "text-red-500";
+  if (level === "HIGH") return "text-orange-400";
+  if (level === "MEDIUM") return "text-yellow-400";
+  return "text-green-400";
+};
+
 export default function Page() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [clusters, setClusters] = useState<Cluster[]>([]);
@@ -62,7 +69,7 @@ export default function Page() {
           severity,
           source: sources[randomInt(0, sources.length - 1)],
         },
-        ...prev.slice(0, 8),
+        ...prev.slice(0, 6),
       ]);
 
       setClusters((prev) => [
@@ -78,40 +85,79 @@ export default function Page() {
         ...prev.slice(1),
         { time: prev.length, value: randomInt(6, 20) },
       ]);
-    }, 3000);
+    }, 2500);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div style={{ background: "black", minHeight: "100vh", color: "white", padding: "20px" }}>
-      <h1>⚔️ WAR ROOM</h1>
+    <div className="bg-black min-h-screen text-white p-6">
+      
+      {/* HEADER */}
+      <h1 className="text-2xl font-bold mb-6 border-b border-gray-800 pb-2">
+        ⚔️ WAR ROOM COMMAND CENTER
+      </h1>
 
-      <h2>Live Alerts</h2>
-      {alerts.map((a, i) => (
-        <div key={i}>
-          {a.time} | {a.keyword} | {a.source} | {a.severity}
+      {/* GRID */}
+      <div className="grid grid-cols-3 gap-4">
+
+        {/* ALERTS */}
+        <div className="col-span-2 bg-zinc-900 rounded-2xl p-4 border border-gray-800">
+          <h2 className="text-lg font-semibold mb-3">Live Alerts</h2>
+
+          {alerts.map((a, i) => (
+            <div
+              key={i}
+              className="flex justify-between text-sm py-2 border-b border-gray-800"
+            >
+              <span>{a.time}</span>
+              <span>{a.keyword}</span>
+              <span>{a.source}</span>
+              <span className={severityColor(a.severity)}>
+                {a.severity}
+              </span>
+            </div>
+          ))}
         </div>
-      ))}
 
-      <h2>Trend</h2>
-      <div style={{ width: "100%", height: 200 }}>
-        <ResponsiveContainer>
-          <LineChart data={trend}>
-            <XAxis dataKey="time" />
-            <YAxis />
-            <Tooltip />
-            <Line type="monotone" dataKey="value" />
-          </LineChart>
-        </ResponsiveContainer>
+        {/* TREND */}
+        <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
+          <h2 className="text-lg font-semibold mb-3">Threat Trend</h2>
+
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={trend}>
+              <XAxis dataKey="time" hide />
+              <YAxis hide />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#ef4444"
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* CLUSTERS */}
+        <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
+          <h2 className="text-lg font-semibold mb-3">Active Clusters</h2>
+
+          {clusters.map((c, i) => (
+            <div
+              key={i}
+              className="flex justify-between text-sm py-2 border-b border-gray-800"
+            >
+              <span>{c.id}</span>
+              <span>{c.keyword}</span>
+              <span className="text-red-400 font-semibold">
+                {c.volume}
+              </span>
+            </div>
+          ))}
+        </div>
+
       </div>
-
-      <h2>Clusters</h2>
-      {clusters.map((c, i) => (
-        <div key={i}>
-          {c.id} | {c.keyword} | {c.volume}
-        </div>
-      ))}
     </div>
   );
 }
