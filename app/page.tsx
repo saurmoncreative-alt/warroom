@@ -68,7 +68,7 @@ export default function Page(){
 
           <button
             onClick={()=>{
-              if(password==="admin123"){
+              if(password==="KyrosAura"){
                 setLoggedIn(true);
               } else {
                 alert("Access Denied");
