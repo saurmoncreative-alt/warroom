@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+// TYPES
 type Alert = {
   time: string;
   keyword: string;
@@ -23,9 +24,11 @@ type Cluster = {
   volume: number;
 };
 
-const keywords = ["পাগল", "দালাল", "চুমা বাবা", "গৰু"];
-const sources = ["FB Live", "FB Page", "FB Group"];
+// DATA
+const keywords = ["পাগল", "দালাল", "চুমা বাবা", "গৰু", "ঠগবাজ"];
+const sources = ["FB Live", "FB Page", "FB Group", "FB Reel"];
 
+// HELPERS
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -45,13 +48,36 @@ export default function Page() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [trend, setTrend] = useState<{ time: number; value: number }[]>([]);
-  const [risk, setRisk] = useState(45);
+  const [risk, setRisk] = useState(48);
+  const [uptime, setUptime] = useState("");
 
+  const agents = 120;
+
+  // UPTIME CALCULATION
+  useEffect(() => {
+    const start = new Date("2026-04-20T01:30:00");
+
+    const update = () => {
+      const now = new Date();
+      const diff = now.getTime() - start.getTime();
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+
+      setUptime(`${hours}h ${mins}m`);
+    };
+
+    update();
+    const interval = setInterval(update, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // MAIN ENGINE
   useEffect(() => {
     setTrend(
-      Array.from({ length: 20 }, (_, i) => ({
+      Array.from({ length: 25 }, (_, i) => ({
         time: i,
-        value: randomInt(5, 15),
+        value: randomInt(6, 18),
       }))
     );
 
@@ -63,6 +89,7 @@ export default function Page() {
 
       const clusterId = makeClusterId();
 
+      // ALERTS
       setAlerts((prev) => [
         {
           time: new Date().toLocaleTimeString(),
@@ -73,27 +100,43 @@ export default function Page() {
         ...prev.slice(0, 6),
       ]);
 
-      setClusters((prev) => [
-        {
-          id: clusterId,
-          keyword,
-          volume: randomInt(20, 80),
-        },
-        ...prev.slice(0, 4),
-      ]);
+      // CLUSTERS (controlled growth)
+      setClusters((prev) => {
+        const growth = risk > 65 ? randomInt(1, 3) : randomInt(2, 6);
 
-      setTrend((prev) => [
-        ...prev.slice(1),
-        { time: prev.length, value: randomInt(6, 20) },
-      ]);
+        return [
+          {
+            id: clusterId,
+            keyword,
+            volume: randomInt(20, 60) + growth,
+          },
+          ...prev.slice(0, 4),
+        ];
+      });
 
-      // Risk movement (controlled)
-      setRisk((r) => Math.max(20, Math.min(100, r + randomInt(-3, 6))));
+      // TREND
+      setTrend((prev) => {
+        let base = randomInt(8, 22);
 
+        // mitigation effect
+        if (risk > 65) base -= randomInt(4, 8);
+
+        return [...prev.slice(1), { time: prev.length, value: base }];
+      });
+
+      // RISK ENGINE (key realism)
+      setRisk((r) => {
+        let change = randomInt(-2, 5);
+
+        if (r > 70) change -= randomInt(4, 8);
+        else if (r > 60) change -= randomInt(2, 5);
+
+        return Math.max(25, Math.min(95, r + change));
+      });
     }, 2500);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [risk]);
 
   return (
     <div className="bg-black min-h-screen text-white p-6">
@@ -165,45 +208,74 @@ export default function Page() {
       </div>
 
       {/* INTELLIGENCE LAYER */}
-      <div className="grid grid-cols-3 gap-4 mt-6">
+      <div className="grid grid-cols-4 gap-4 mt-6">
 
         {/* RISK */}
         <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
           <h2 className="text-lg mb-2">Risk Level</h2>
-          <div className="text-4xl font-bold text-red-500">
-            {risk}%
-          </div>
-          <div className="text-sm text-gray-400">
+          <div className="text-4xl font-bold text-red-500">{risk}%</div>
+          <div className="text-xs text-gray-400">
             Narrative intensity index
           </div>
         </div>
 
-        {/* TOP ACCOUNTS */}
+        {/* ACCOUNTS */}
         <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
           <h2 className="text-lg mb-2">Top Active Accounts</h2>
 
-          {["UID_653844","UID_678528","UID_437887"].map((id, i) => (
+          {["UID_653844", "UID_678528", "UID_437887"].map((id, i) => (
             <div key={i} className="flex justify-between py-1 text-sm">
               <span>{id}</span>
-              <span className="text-red-400">{randomInt(30,80)}</span>
+              <span className="text-red-400">{randomInt(35, 85)}</span>
             </div>
           ))}
         </div>
 
-        {/* DECISION ENGINE */}
+        {/* DECISION */}
         <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
           <h2 className="text-lg mb-2">System Recommendation</h2>
 
           <div className="text-red-400 font-semibold">
             {risk > 70
-              ? "Suppress Immediately"
+              ? "Active Mitigation"
               : risk > 50
-              ? "Deploy Counter Narrative"
-              : "Monitor Situation"}
+              ? "Counter Narrative Scaling"
+              : "Monitoring"}
           </div>
 
           <div className="text-xs text-gray-400 mt-2">
             Based on cluster velocity & severity
+          </div>
+        </div>
+
+        {/* AUTOMATION */}
+        <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
+          <h2 className="text-lg mb-2">System Operations</h2>
+
+          <div className="flex justify-between text-sm py-1">
+            <span>Active Agents</span>
+            <span className="text-green-400">{agents}</span>
+          </div>
+
+          <div className="flex justify-between text-sm py-1">
+            <span>Status</span>
+            <span className="text-green-400">Active</span>
+          </div>
+
+          <div className="flex justify-between text-sm py-1">
+            <span>Uptime</span>
+            <span className="text-gray-400">{uptime}</span>
+          </div>
+
+          <div className="flex justify-between text-sm py-1">
+            <span>Response Mode</span>
+            <span className="text-yellow-400">
+              {risk > 65 ? "Active Mitigation" : "Monitoring"}
+            </span>
+          </div>
+
+          <div className="text-xs text-gray-500 mt-2">
+            Automated agents responding to narrative escalation patterns
           </div>
         </div>
 
