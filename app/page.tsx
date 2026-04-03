@@ -52,42 +52,7 @@ export default function Page(){
   const agents=120;
   const uptime="452h";
 
-  // LOGIN SCREEN
-  if(!loggedIn){
-    return (
-      <div className="bg-black min-h-screen flex items-center justify-center text-white">
-        <div className="bg-zinc-900 p-6 rounded-2xl w-80">
-          <h2 className="text-lg mb-4">🔐 Secure Access</h2>
-
-          <input
-            type="password"
-            placeholder="Enter password"
-            className="w-full p-2 mb-4 bg-black border border-gray-700 rounded"
-            onChange={(e)=>setPassword(e.target.value)}
-          />
-
-          <button
-            onClick={()=>{
-              if(password==="KyrosAura"){
-                setLoggedIn(true);
-              } else {
-                alert("Access Denied");
-              }
-            }}
-            className="w-full bg-red-600 py-2 rounded"
-          >
-            Enter
-          </button>
-
-          <p className="text-xs text-gray-500 mt-3">
-            Authorized monitoring interface
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // ENGINE
+  // ENGINE (always runs safely now)
   useEffect(()=>{
 
     const interval=setInterval(()=>{
@@ -127,7 +92,7 @@ export default function Page(){
         return updated;
       });
 
-      // small realistic increments
+      // totals grow realistically
       setDetected(d=>d+randomInt(5,10));
       setReported(r=>r+randomInt(5,10));
       setScrubbed(s=>s+randomInt(3,7));
@@ -150,115 +115,155 @@ export default function Page(){
   return(
     <div className="bg-black min-h-screen text-white p-6">
 
-      <h1 className="text-2xl font-bold mb-2 border-b border-gray-800 pb-2">
-        ⚔️ WAR ROOM COMMAND CENTER
-      </h1>
+      {!loggedIn ? (
 
-      <p className="text-xs text-gray-500 mb-4">
-        Simulation-based monitoring dashboard. No real user data stored.
-      </p>
+        // 🔐 LOGIN SCREEN
+        <div className="flex items-center justify-center h-screen">
+          <div className="bg-zinc-900 p-6 rounded-2xl w-80">
+            <h2 className="text-lg mb-4">🔐 Secure Access</h2>
 
-      {/* TOTAL */}
-      <div className="grid grid-cols-5 gap-4 mb-6">
+            <input
+              type="password"
+              placeholder="Enter password"
+              className="w-full p-2 mb-4 bg-black border border-gray-700 rounded"
+              onChange={(e)=>setPassword(e.target.value)}
+            />
 
-        <div className="bg-zinc-900 p-4 rounded-2xl">
-          <div className="text-sm text-gray-400">Total Detected</div>
-          <div className="text-3xl">{detected}</div>
+            <button
+              onClick={()=>{
+                if(password==="KyrosAura"){
+                  setLoggedIn(true);
+                } else {
+                  alert("Access Denied");
+                }
+              }}
+              className="w-full bg-red-600 py-2 rounded"
+            >
+              Enter
+            </button>
+
+            <p className="text-xs text-gray-500 mt-3">
+              Authorized monitoring interface
+            </p>
+          </div>
         </div>
 
-        <div className="bg-zinc-900 p-4 rounded-2xl">
-          <div className="text-sm text-gray-400">Reported</div>
-          <div className="text-3xl text-yellow-400">{reported}</div>
-        </div>
+      ) : (
 
-        <div className="bg-zinc-900 p-4 rounded-2xl">
-          <div className="text-sm text-gray-400">Scrubbed</div>
-          <div className="text-3xl text-green-400">{scrubbed}</div>
-        </div>
+        <>
+          {/* HEADER */}
+          <h1 className="text-2xl font-bold mb-2 border-b border-gray-800 pb-2">
+            ⚔️ WAR ROOM COMMAND CENTER
+          </h1>
 
-        <div className="bg-zinc-900 p-4 rounded-2xl">
-          <div className="text-sm text-gray-400">Risk</div>
-          <div className="text-3xl text-red-500">{risk}%</div>
-        </div>
+          <p className="text-xs text-gray-500 mb-4">
+            Simulation-based monitoring dashboard. No real user data stored.
+          </p>
 
-        <div className="bg-zinc-900 p-4 rounded-2xl">
-          <div className="text-sm text-gray-400">Prediction</div>
-          <div className="text-3xl text-orange-400">{prediction}%</div>
-        </div>
+          {/* TOTAL */}
+          <div className="grid grid-cols-5 gap-4 mb-6">
 
-      </div>
-
-      {/* TODAY */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-
-        <div className="bg-zinc-900 p-4 rounded-2xl">
-          <div className="text-sm text-gray-400">Today Detected</div>
-          <div>{todayDetected}</div>
-        </div>
-
-        <div className="bg-zinc-900 p-4 rounded-2xl">
-          <div className="text-sm text-gray-400">Today Reported</div>
-          <div>{todayReported}</div>
-        </div>
-
-        <div className="bg-zinc-900 p-4 rounded-2xl">
-          <div className="text-sm text-gray-400">Today Scrubbed</div>
-          <div>{todayScrubbed}</div>
-        </div>
-
-      </div>
-
-      {/* TAGS */}
-      <div className="bg-zinc-900 p-4 rounded-2xl mb-6">
-        <h2>Top Narratives</h2>
-        <div className="flex gap-3 flex-wrap">
-          {topTags.map((t,i)=>(
-            <div key={i} className="bg-red-900 px-3 py-1 rounded-full text-sm">
-              {t.key} ({t.count})
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <div className="text-sm text-gray-400">Total Detected</div>
+              <div className="text-3xl">{detected}</div>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* ALERTS */}
-      <div className="bg-zinc-900 p-4 rounded-2xl mb-6">
-        <h2>Live Threat Stream</h2>
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <div className="text-sm text-gray-400">Reported</div>
+              <div className="text-3xl text-yellow-400">{reported}</div>
+            </div>
 
-        {alerts.map((a,i)=>(
-          <div key={i}
-            className={`flex justify-between text-sm py-2 border-b border-gray-800 ${
-              a.severity==="CRITICAL"?"animate-pulse text-red-500":""
-            }`}>
-            <span>{a.time}</span>
-            <span>{a.keyword}</span>
-            <span>{a.source}</span>
-            <span>{a.severity}</span>
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <div className="text-sm text-gray-400">Scrubbed</div>
+              <div className="text-3xl text-green-400">{scrubbed}</div>
+            </div>
+
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <div className="text-sm text-gray-400">Risk</div>
+              <div className="text-3xl text-red-500">{risk}%</div>
+            </div>
+
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <div className="text-sm text-gray-400">Prediction</div>
+              <div className="text-3xl text-orange-400">{prediction}%</div>
+            </div>
+
           </div>
-        ))}
-      </div>
 
-      {/* SYSTEM */}
-      <div className="grid grid-cols-3 gap-4">
+          {/* TODAY */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
 
-        <div className="bg-zinc-900 p-4 rounded-2xl">
-          <h2>Agents</h2>
-          <div>{agents}</div>
-          <div className="text-sm text-gray-400">{uptime}</div>
-        </div>
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <div className="text-sm text-gray-400">Today Detected</div>
+              <div>{todayDetected}</div>
+            </div>
 
-        <div className="bg-zinc-900 p-4 rounded-2xl">
-          <h2>Agent Load</h2>
-          <div className="text-yellow-400 text-3xl">{agentLoad}%</div>
-        </div>
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <div className="text-sm text-gray-400">Today Reported</div>
+              <div>{todayReported}</div>
+            </div>
 
-        <div className="bg-zinc-900 p-4 rounded-2xl">
-          <h2>Mode</h2>
-          <div className="text-red-400">
-            {risk>70?"Active Mitigation":"Monitoring"}
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <div className="text-sm text-gray-400">Today Scrubbed</div>
+              <div>{todayScrubbed}</div>
+            </div>
+
           </div>
-        </div>
 
-      </div>
+          {/* TAGS */}
+          <div className="bg-zinc-900 p-4 rounded-2xl mb-6">
+            <h2>Top Narratives</h2>
+            <div className="flex gap-3 flex-wrap">
+              {topTags.map((t,i)=>(
+                <div key={i} className="bg-red-900 px-3 py-1 rounded-full text-sm">
+                  {t.key} ({t.count})
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ALERTS */}
+          <div className="bg-zinc-900 p-4 rounded-2xl mb-6">
+            <h2>Live Threat Stream</h2>
+
+            {alerts.map((a,i)=>(
+              <div key={i}
+                className={`flex justify-between text-sm py-2 border-b border-gray-800 ${
+                  a.severity==="CRITICAL"?"animate-pulse text-red-500":""
+                }`}>
+                <span>{a.time}</span>
+                <span>{a.keyword}</span>
+                <span>{a.source}</span>
+                <span>{a.severity}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* SYSTEM */}
+          <div className="grid grid-cols-3 gap-4">
+
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <h2>Agents</h2>
+              <div>{agents}</div>
+              <div className="text-sm text-gray-400">{uptime}</div>
+            </div>
+
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <h2>Agent Load</h2>
+              <div className="text-yellow-400 text-3xl">{agentLoad}%</div>
+            </div>
+
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <h2>Mode</h2>
+              <div className="text-red-400">
+                {risk>70?"Active Mitigation":"Monitoring"}
+              </div>
+            </div>
+
+          </div>
+        </>
+
+      )}
 
     </div>
   );
