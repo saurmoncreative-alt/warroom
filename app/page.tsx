@@ -31,39 +31,63 @@ const severityOrder = {
 
 export default function Page(){
 
+  const [loggedIn,setLoggedIn]=useState(false);
+  const [password,setPassword]=useState("");
+
   const [alerts,setAlerts]=useState<Alert[]>([]);
-  const [risk,setRisk]=useState(52);
-  const [prediction,setPrediction]=useState(60);
+  const [risk,setRisk]=useState(65);
+  const [prediction,setPrediction]=useState(95);
 
-  const [detected,setDetected]=useState(20120);
-  const [reported,setReported]=useState(18240);
-  const [scrubbed,setScrubbed]=useState(16980);
+  const [detected,setDetected]=useState(25000);
+  const [reported,setReported]=useState(25000);
+  const [scrubbed,setScrubbed]=useState(20000);
 
-  const [agentLoad,setAgentLoad]=useState(65);
-  const [uptime,setUptime]=useState("");
+  const [todayDetected,setTodayDetected]=useState(1100);
+  const [todayReported,setTodayReported]=useState(1100);
+  const [todayScrubbed,setTodayScrubbed]=useState(1000);
 
-  const [topTags,setTopTags]=useState<{key:string,count:number}[]>([]);
+  const [agentLoad,setAgentLoad]=useState(72);
+  const [topTags,setTopTags]=useState<any[]>([]);
 
   const agents=120;
+  const uptime="452h";
 
-  // ⏱ UPTIME
-  useEffect(()=>{
-    const start=new Date("2026-04-20T01:30:00");
+  // LOGIN SCREEN
+  if(!loggedIn){
+    return (
+      <div className="bg-black min-h-screen flex items-center justify-center text-white">
+        <div className="bg-zinc-900 p-6 rounded-2xl w-80">
+          <h2 className="text-lg mb-4">🔐 Secure Access</h2>
 
-    const update=()=>{
-      const now=new Date();
-      const diff=now.getTime()-start.getTime();
-      const h=Math.floor(diff/(1000*60*60));
-      const m=Math.floor((diff/(1000*60))%60);
-      setUptime(`${h}h ${m}m`);
-    };
+          <input
+            type="password"
+            placeholder="Enter password"
+            className="w-full p-2 mb-4 bg-black border border-gray-700 rounded"
+            onChange={(e)=>setPassword(e.target.value)}
+          />
 
-    update();
-    const i=setInterval(update,60000);
-    return()=>clearInterval(i);
-  },[]);
+          <button
+            onClick={()=>{
+              if(password==="admin123"){
+                setLoggedIn(true);
+              } else {
+                alert("Access Denied");
+              }
+            }}
+            className="w-full bg-red-600 py-2 rounded"
+          >
+            Enter
+          </button>
 
-  // ⚙️ ENGINE
+          <p className="text-xs text-gray-500 mt-3">
+            Authorized monitoring interface
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ENGINE
   useEffect(()=>{
 
     const interval=setInterval(()=>{
@@ -71,7 +95,6 @@ export default function Page(){
       const keyword=keywords[randomInt(0,keywords.length-1)];
       const severity=["LOW","MEDIUM","HIGH","CRITICAL"][randomInt(0,3)];
 
-      // ALERTS
       setAlerts(prev=>{
         const updated=[
           {
@@ -83,14 +106,12 @@ export default function Page(){
           ...prev
         ].slice(0,10);
 
-        // 🧠 SORT BY SEVERITY
         updated.sort(
-  (a, b) =>
-    severityOrder[b.severity as keyof typeof severityOrder] -
-    severityOrder[a.severity as keyof typeof severityOrder]
-);
+          (a,b)=>
+            severityOrder[b.severity as keyof typeof severityOrder] -
+            severityOrder[a.severity as keyof typeof severityOrder]
+        );
 
-        // 🏷 TAG AGGREGATION
         const map:any={};
         updated.forEach(a=>{
           map[a.keyword]=(map[a.keyword]||0)+1;
@@ -106,51 +127,43 @@ export default function Page(){
         return updated;
       });
 
-      // RISK
-      setRisk(r=>{
-        let change=randomInt(-2,5);
-        if(r>70) change-=randomInt(3,7);
-        return Math.max(30,Math.min(95,r+change));
-      });
-
-      // PREDICTION
-      setPrediction(p=>{
-        let drift=randomInt(-2,4);
-        if(risk>65) drift+=randomInt(3,6);
-        return Math.max(40,Math.min(95,p+drift));
-      });
-
-      // TOTALS
-      setDetected(d=>d+randomInt(6,12));
+      // small realistic increments
+      setDetected(d=>d+randomInt(5,10));
       setReported(r=>r+randomInt(5,10));
-      setScrubbed(s=>s+randomInt(4,8));
+      setScrubbed(s=>s+randomInt(3,7));
 
-      // LOAD
+      setTodayDetected(t=>t+randomInt(1,4));
+      setTodayReported(t=>t+randomInt(1,4));
+      setTodayScrubbed(t=>t+randomInt(1,3));
+
       setAgentLoad(l=>{
-        let change=randomInt(-3,5);
-        if(risk>65) change+=randomInt(3,6);
-        return Math.max(40,Math.min(100,l+change));
+        let change=randomInt(-2,4);
+        return Math.max(50,Math.min(100,l+change));
       });
 
-    },2800); // slightly slower = realistic
+    },3000);
 
     return()=>clearInterval(interval);
 
-  },[risk]);
+  },[]);
 
   return(
     <div className="bg-black min-h-screen text-white p-6">
 
-      <h1 className="text-2xl font-bold mb-6 border-b border-gray-800 pb-2">
+      <h1 className="text-2xl font-bold mb-2 border-b border-gray-800 pb-2">
         ⚔️ WAR ROOM COMMAND CENTER
       </h1>
 
-      {/* KPI */}
+      <p className="text-xs text-gray-500 mb-4">
+        Simulation-based monitoring dashboard. No real user data stored.
+      </p>
+
+      {/* TOTAL */}
       <div className="grid grid-cols-5 gap-4 mb-6">
 
         <div className="bg-zinc-900 p-4 rounded-2xl">
           <div className="text-sm text-gray-400">Total Detected</div>
-          <div className="text-3xl font-bold">{detected}</div>
+          <div className="text-3xl">{detected}</div>
         </div>
 
         <div className="bg-zinc-900 p-4 rounded-2xl">
@@ -175,9 +188,29 @@ export default function Page(){
 
       </div>
 
+      {/* TODAY */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+
+        <div className="bg-zinc-900 p-4 rounded-2xl">
+          <div className="text-sm text-gray-400">Today Detected</div>
+          <div>{todayDetected}</div>
+        </div>
+
+        <div className="bg-zinc-900 p-4 rounded-2xl">
+          <div className="text-sm text-gray-400">Today Reported</div>
+          <div>{todayReported}</div>
+        </div>
+
+        <div className="bg-zinc-900 p-4 rounded-2xl">
+          <div className="text-sm text-gray-400">Today Scrubbed</div>
+          <div>{todayScrubbed}</div>
+        </div>
+
+      </div>
+
       {/* TAGS */}
       <div className="bg-zinc-900 p-4 rounded-2xl mb-6">
-        <h2 className="mb-2">Top Narratives</h2>
+        <h2>Top Narratives</h2>
         <div className="flex gap-3 flex-wrap">
           {topTags.map((t,i)=>(
             <div key={i} className="bg-red-900 px-3 py-1 rounded-full text-sm">
@@ -187,25 +220,21 @@ export default function Page(){
         </div>
       </div>
 
-      {/* ALERT STREAM */}
+      {/* ALERTS */}
       <div className="bg-zinc-900 p-4 rounded-2xl mb-6">
-
-        <h2 className="mb-3">Live Threat Stream</h2>
+        <h2>Live Threat Stream</h2>
 
         {alerts.map((a,i)=>(
-          <div
-            key={i}
+          <div key={i}
             className={`flex justify-between text-sm py-2 border-b border-gray-800 ${
-              a.severity==="CRITICAL" ? "animate-pulse text-red-500 font-semibold" : ""
-            }`}
-          >
+              a.severity==="CRITICAL"?"animate-pulse text-red-500":""
+            }`}>
             <span>{a.time}</span>
             <span>{a.keyword}</span>
             <span>{a.source}</span>
             <span>{a.severity}</span>
           </div>
         ))}
-
       </div>
 
       {/* SYSTEM */}
