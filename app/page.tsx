@@ -84,7 +84,11 @@ export default function Page(){
         ].slice(0,10);
 
         // 🧠 SORT BY SEVERITY
-        updated.sort((a,b)=>severityOrder[b.severity]-severityOrder[a.severity]);
+        updated.sort(
+  (a, b) =>
+    severityOrder[b.severity as keyof typeof severityOrder] -
+    severityOrder[a.severity as keyof typeof severityOrder]
+);
 
         // 🏷 TAG AGGREGATION
         const map:any={};
