@@ -11,7 +11,7 @@ type Alert = {
 
 const keywords = [
   "পাগল","দালাল","চুমা বাবা","গৰু","ঠগবাজ",
-  "420","ফটুৱা","নিলৰ্জ","বেইমান",
+  "ফটুৱা","নিলৰ্জ","বেইমান",
   "কুকুৰ","ছাগলী","গাধা","চেলেকা",
   "মক্কেল","ভণ্ড","মিঞা দালাল"
 ];
@@ -52,7 +52,7 @@ export default function Page(){
   const agents=120;
   const uptime="452h";
 
-  // ENGINE (always runs safely now)
+  // ENGINE
   useEffect(()=>{
 
     const interval=setInterval(()=>{
@@ -92,7 +92,6 @@ export default function Page(){
         return updated;
       });
 
-      // totals grow realistically
       setDetected(d=>d+randomInt(5,10));
       setReported(r=>r+randomInt(5,10));
       setScrubbed(s=>s+randomInt(3,7));
@@ -117,7 +116,7 @@ export default function Page(){
 
       {!loggedIn ? (
 
-        // 🔐 LOGIN SCREEN
+        // 🔐 LOGIN
         <div className="flex items-center justify-center h-screen">
           <div className="bg-zinc-900 p-6 rounded-2xl w-80">
             <h2 className="text-lg mb-4">🔐 Secure Access</h2>
@@ -151,13 +150,26 @@ export default function Page(){
       ) : (
 
         <>
-          {/* HEADER */}
-          <h1 className="text-2xl font-bold mb-2 border-b border-gray-800 pb-2">
-            ⚔️ WAR ROOM COMMAND CENTER
-          </h1>
+          {/* HEADER + LOGOUT */}
+          <div className="flex justify-between items-center border-b border-gray-800 pb-2 mb-2">
+            <h1 className="text-2xl font-bold">
+              ⚔️ WAR ROOM COMMAND CENTER
+            </h1>
 
+            <button
+              onClick={()=>{
+                setLoggedIn(false);
+                setPassword("");
+              }}
+              className="bg-red-700 px-3 py-1 rounded text-sm hover:bg-red-800"
+            >
+              Logout
+            </button>
+          </div>
+
+          {/* DOMAIN LINE */}
           <p className="text-xs text-gray-500 mb-4">
-            Simulation-based monitoring dashboard. No real user data stored.
+            warroom.jansanjog.com | Internal Access Node | Since Apr 20, 01:30 IST
           </p>
 
           {/* TOTAL */}
