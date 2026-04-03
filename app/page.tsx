@@ -45,6 +45,7 @@ export default function Page() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [trend, setTrend] = useState<{ time: number; value: number }[]>([]);
+  const [risk, setRisk] = useState(45);
 
   useEffect(() => {
     setTrend(
@@ -85,6 +86,10 @@ export default function Page() {
         ...prev.slice(1),
         { time: prev.length, value: randomInt(6, 20) },
       ]);
+
+      // Risk movement (controlled)
+      setRisk((r) => Math.max(20, Math.min(100, r + randomInt(-3, 6))));
+
     }, 2500);
 
     return () => clearInterval(interval);
@@ -92,13 +97,13 @@ export default function Page() {
 
   return (
     <div className="bg-black min-h-screen text-white p-6">
-      
+
       {/* HEADER */}
       <h1 className="text-2xl font-bold mb-6 border-b border-gray-800 pb-2">
         ⚔️ WAR ROOM COMMAND CENTER
       </h1>
 
-      {/* GRID */}
+      {/* MAIN GRID */}
       <div className="grid grid-cols-3 gap-4">
 
         {/* ALERTS */}
@@ -158,6 +163,52 @@ export default function Page() {
         </div>
 
       </div>
+
+      {/* INTELLIGENCE LAYER */}
+      <div className="grid grid-cols-3 gap-4 mt-6">
+
+        {/* RISK */}
+        <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
+          <h2 className="text-lg mb-2">Risk Level</h2>
+          <div className="text-4xl font-bold text-red-500">
+            {risk}%
+          </div>
+          <div className="text-sm text-gray-400">
+            Narrative intensity index
+          </div>
+        </div>
+
+        {/* TOP ACCOUNTS */}
+        <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
+          <h2 className="text-lg mb-2">Top Active Accounts</h2>
+
+          {["UID_653844","UID_678528","UID_437887"].map((id, i) => (
+            <div key={i} className="flex justify-between py-1 text-sm">
+              <span>{id}</span>
+              <span className="text-red-400">{randomInt(30,80)}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* DECISION ENGINE */}
+        <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
+          <h2 className="text-lg mb-2">System Recommendation</h2>
+
+          <div className="text-red-400 font-semibold">
+            {risk > 70
+              ? "Suppress Immediately"
+              : risk > 50
+              ? "Deploy Counter Narrative"
+              : "Monitor Situation"}
+          </div>
+
+          <div className="text-xs text-gray-400 mt-2">
+            Based on cluster velocity & severity
+          </div>
+        </div>
+
+      </div>
+
     </div>
   );
 }
