@@ -10,7 +10,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// TYPES
 type Alert = {
   time: string;
   keyword: string;
@@ -24,11 +23,16 @@ type Cluster = {
   volume: number;
 };
 
-// DATA
-const keywords = ["পাগল", "দালাল", "চুমা বাবা", "গৰু", "ঠগবাজ"];
+// 🔥 REAL DATA-DRIVEN KEYWORDS
+const keywords = [
+  "পাগল", "দালাল", "চুমা বাবা", "গৰু", "ঠগবাজ",
+  "420", "ফটুৱা", "নিলৰ্জ", "বেইমান",
+  "কুকুৰ", "ছাগলী", "গাধা", "চেলেকা",
+  "মক্কেল", "ভণ্ড", "মিঞা দালাল"
+];
+
 const sources = ["FB Live", "FB Page", "FB Group", "FB Reel"];
 
-// HELPERS
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -48,12 +52,13 @@ export default function Page() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [trend, setTrend] = useState<{ time: number; value: number }[]>([]);
-  const [risk, setRisk] = useState(48);
+  const [risk, setRisk] = useState(52);
   const [uptime, setUptime] = useState("");
+  const [agentLoad, setAgentLoad] = useState(65);
 
   const agents = 120;
 
-  // UPTIME CALCULATION
+  // ⏱ UPTIME
   useEffect(() => {
     const start = new Date("2026-04-20T01:30:00");
 
@@ -72,21 +77,18 @@ export default function Page() {
     return () => clearInterval(interval);
   }, []);
 
-  // MAIN ENGINE
+  // ⚙️ MAIN ENGINE
   useEffect(() => {
     setTrend(
-      Array.from({ length: 25 }, (_, i) => ({
+      Array.from({ length: 30 }, (_, i) => ({
         time: i,
-        value: randomInt(6, 18),
+        value: randomInt(8, 20),
       }))
     );
 
     const interval = setInterval(() => {
       const keyword = keywords[randomInt(0, keywords.length - 1)];
-      const severity = ["LOW", "MEDIUM", "HIGH", "CRITICAL"][
-        randomInt(0, 3)
-      ];
-
+      const severity = ["LOW", "MEDIUM", "HIGH", "CRITICAL"][randomInt(0, 3)];
       const clusterId = makeClusterId();
 
       // ALERTS
@@ -97,42 +99,44 @@ export default function Page() {
           severity,
           source: sources[randomInt(0, sources.length - 1)],
         },
-        ...prev.slice(0, 6),
+        ...prev.slice(0, 7),
       ]);
 
-      // CLUSTERS (controlled growth)
-      setClusters((prev) => {
-        const growth = risk > 65 ? randomInt(1, 3) : randomInt(2, 6);
+      // CLUSTERS
+      setClusters((prev) => [
+        {
+          id: clusterId,
+          keyword,
+          volume: randomInt(25, 75),
+        },
+        ...prev.slice(0, 5),
+      ]);
 
-        return [
-          {
-            id: clusterId,
-            keyword,
-            volume: randomInt(20, 60) + growth,
-          },
-          ...prev.slice(0, 4),
-        ];
-      });
-
-      // TREND
+      // TREND (with mitigation logic)
       setTrend((prev) => {
-        let base = randomInt(8, 22);
+        let value = randomInt(10, 25);
 
-        // mitigation effect
-        if (risk > 65) base -= randomInt(4, 8);
+        if (risk > 65) value -= randomInt(5, 10);
 
-        return [...prev.slice(1), { time: prev.length, value: base }];
+        return [...prev.slice(1), { time: prev.length, value }];
       });
 
-      // RISK ENGINE (key realism)
+      // RISK ENGINE
       setRisk((r) => {
-        let change = randomInt(-2, 5);
+        let change = randomInt(-3, 6);
 
-        if (r > 70) change -= randomInt(4, 8);
-        else if (r > 60) change -= randomInt(2, 5);
+        if (r > 70) change -= randomInt(4, 9);
 
-        return Math.max(25, Math.min(95, r + change));
+        return Math.max(30, Math.min(95, r + change));
       });
+
+      // AGENT LOAD
+      setAgentLoad((l) => {
+        let change = randomInt(-5, 5);
+        if (risk > 65) change += randomInt(3, 8);
+        return Math.max(40, Math.min(100, l + change));
+      });
+
     }, 2500);
 
     return () => clearInterval(interval);
@@ -141,141 +145,66 @@ export default function Page() {
   return (
     <div className="bg-black min-h-screen text-white p-6">
 
-      {/* HEADER */}
       <h1 className="text-2xl font-bold mb-6 border-b border-gray-800 pb-2">
         ⚔️ WAR ROOM COMMAND CENTER
       </h1>
 
-      {/* MAIN GRID */}
+      {/* GRID */}
       <div className="grid grid-cols-3 gap-4">
 
         {/* ALERTS */}
         <div className="col-span-2 bg-zinc-900 rounded-2xl p-4 border border-gray-800">
-          <h2 className="text-lg font-semibold mb-3">Live Alerts</h2>
+          <h2 className="text-lg mb-3">Live Alerts</h2>
 
           {alerts.map((a, i) => (
-            <div
-              key={i}
-              className="flex justify-between text-sm py-2 border-b border-gray-800"
-            >
+            <div key={i} className="flex justify-between text-sm py-2 border-b border-gray-800">
               <span>{a.time}</span>
               <span>{a.keyword}</span>
               <span>{a.source}</span>
-              <span className={severityColor(a.severity)}>
-                {a.severity}
-              </span>
+              <span className={severityColor(a.severity)}>{a.severity}</span>
             </div>
           ))}
         </div>
 
         {/* TREND */}
         <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
-          <h2 className="text-lg font-semibold mb-3">Threat Trend</h2>
+          <h2 className="text-lg mb-3">Threat Trend</h2>
 
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={trend}>
               <XAxis dataKey="time" hide />
               <YAxis hide />
               <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="#ef4444"
-                strokeWidth={2}
-              />
+              <Line type="monotone" dataKey="value" stroke="#ef4444" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        {/* CLUSTERS */}
-        <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
-          <h2 className="text-lg font-semibold mb-3">Active Clusters</h2>
-
-          {clusters.map((c, i) => (
-            <div
-              key={i}
-              className="flex justify-between text-sm py-2 border-b border-gray-800"
-            >
-              <span>{c.id}</span>
-              <span>{c.keyword}</span>
-              <span className="text-red-400 font-semibold">
-                {c.volume}
-              </span>
-            </div>
-          ))}
-        </div>
-
       </div>
 
-      {/* INTELLIGENCE LAYER */}
+      {/* ENTERPRISE LAYER */}
       <div className="grid grid-cols-4 gap-4 mt-6">
 
-        {/* RISK */}
-        <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
-          <h2 className="text-lg mb-2">Risk Level</h2>
-          <div className="text-4xl font-bold text-red-500">{risk}%</div>
-          <div className="text-xs text-gray-400">
-            Narrative intensity index
-          </div>
+        <div className="bg-zinc-900 p-4 rounded-2xl border border-gray-800">
+          <h2>Risk Level</h2>
+          <div className="text-4xl text-red-500 font-bold">{risk}%</div>
         </div>
 
-        {/* ACCOUNTS */}
-        <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
-          <h2 className="text-lg mb-2">Top Active Accounts</h2>
-
-          {["UID_653844", "UID_678528", "UID_437887"].map((id, i) => (
-            <div key={i} className="flex justify-between py-1 text-sm">
-              <span>{id}</span>
-              <span className="text-red-400">{randomInt(35, 85)}</span>
-            </div>
-          ))}
+        <div className="bg-zinc-900 p-4 rounded-2xl border border-gray-800">
+          <h2>Agent Load</h2>
+          <div className="text-4xl text-yellow-400 font-bold">{agentLoad}%</div>
         </div>
 
-        {/* DECISION */}
-        <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
-          <h2 className="text-lg mb-2">System Recommendation</h2>
-
-          <div className="text-red-400 font-semibold">
-            {risk > 70
-              ? "Active Mitigation"
-              : risk > 50
-              ? "Counter Narrative Scaling"
-              : "Monitoring"}
-          </div>
-
-          <div className="text-xs text-gray-400 mt-2">
-            Based on cluster velocity & severity
-          </div>
+        <div className="bg-zinc-900 p-4 rounded-2xl border border-gray-800">
+          <h2>System Ops</h2>
+          <div className="text-sm">Agents: {agents}</div>
+          <div className="text-sm">Uptime: {uptime}</div>
         </div>
 
-        {/* AUTOMATION */}
-        <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
-          <h2 className="text-lg mb-2">System Operations</h2>
-
-          <div className="flex justify-between text-sm py-1">
-            <span>Active Agents</span>
-            <span className="text-green-400">{agents}</span>
-          </div>
-
-          <div className="flex justify-between text-sm py-1">
-            <span>Status</span>
-            <span className="text-green-400">Active</span>
-          </div>
-
-          <div className="flex justify-between text-sm py-1">
-            <span>Uptime</span>
-            <span className="text-gray-400">{uptime}</span>
-          </div>
-
-          <div className="flex justify-between text-sm py-1">
-            <span>Response Mode</span>
-            <span className="text-yellow-400">
-              {risk > 65 ? "Active Mitigation" : "Monitoring"}
-            </span>
-          </div>
-
-          <div className="text-xs text-gray-500 mt-2">
-            Automated agents responding to narrative escalation patterns
+        <div className="bg-zinc-900 p-4 rounded-2xl border border-gray-800">
+          <h2>Recommendation</h2>
+          <div className="text-red-400">
+            {risk > 70 ? "Active Mitigation" : "Monitoring"}
           </div>
         </div>
 
