@@ -8,8 +8,11 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  BarChart,
+  Bar,
 } from "recharts";
 
+// TYPES
 type Alert = {
   time: string;
   keyword: string;
@@ -23,12 +26,22 @@ type Cluster = {
   volume: number;
 };
 
-// 🔥 REAL DATA-DRIVEN KEYWORDS
+// 🔥 KEYWORDS (realistic)
 const keywords = [
-  "পাগল", "দালাল", "চুমা বাবা", "গৰু", "ঠগবাজ",
-  "420", "ফটুৱা", "নিলৰ্জ", "বেইমান",
-  "কুকুৰ", "ছাগলী", "গাধা", "চেলেকা",
-  "মক্কেল", "ভণ্ড", "মিঞা দালাল"
+  "পাগল","দালাল","চুমা বাবা","গৰু","ঠগবাজ",
+  "420","ফটুৱা","নিলৰ্জ","বেইমান",
+  "কুকুৰ","ছাগলী","গাধা","চেলেকা",
+  "মক্কেল","ভণ্ড","মিঞা দালাল"
+];
+
+// 🌍 GEO LOCATIONS
+const locations = [
+  "Sivasagar",
+  "Dibrugarh",
+  "Jorhat",
+  "Tinsukia",
+  "Golaghat",
+  "Majuli"
 ];
 
 const sources = ["FB Live", "FB Page", "FB Group", "FB Reel"];
@@ -41,20 +54,15 @@ function makeClusterId() {
   return "CL-" + randomInt(1000, 9999);
 }
 
-const severityColor = (level: string) => {
-  if (level === "CRITICAL") return "text-red-500";
-  if (level === "HIGH") return "text-orange-400";
-  if (level === "MEDIUM") return "text-yellow-400";
-  return "text-green-400";
-};
-
 export default function Page() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [clusters, setClusters] = useState<Cluster[]>([]);
-  const [trend, setTrend] = useState<{ time: number; value: number }[]>([]);
-  const [risk, setRisk] = useState(52);
+  const [trend, setTrend] = useState<any[]>([]);
+  const [timeline, setTimeline] = useState<any[]>([]);
+  const [geo, setGeo] = useState<any[]>([]);
+  const [risk, setRisk] = useState(50);
   const [uptime, setUptime] = useState("");
-  const [agentLoad, setAgentLoad] = useState(65);
+  const [agentLoad, setAgentLoad] = useState(60);
 
   const agents = 120;
 
@@ -65,75 +73,89 @@ export default function Page() {
     const update = () => {
       const now = new Date();
       const diff = now.getTime() - start.getTime();
-
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const mins = Math.floor((diff / (1000 * 60)) % 60);
-
-      setUptime(`${hours}h ${mins}m`);
+      const h = Math.floor(diff / (1000 * 60 * 60));
+      const m = Math.floor((diff / (1000 * 60)) % 60);
+      setUptime(`${h}h ${m}m`);
     };
 
     update();
-    const interval = setInterval(update, 60000);
-    return () => clearInterval(interval);
+    const i = setInterval(update, 60000);
+    return () => clearInterval(i);
   }, []);
 
-  // ⚙️ MAIN ENGINE
+  // ⚙️ ENGINE
   useEffect(() => {
-    setTrend(
-      Array.from({ length: 30 }, (_, i) => ({
-        time: i,
-        value: randomInt(8, 20),
-      }))
-    );
+    setTrend(Array.from({ length: 25 }, (_, i) => ({
+      time: i,
+      value: randomInt(10, 20),
+    })));
+
+    setTimeline(Array.from({ length: 10 }, (_, i) => ({
+      t: `T-${10 - i}`,
+      value: randomInt(20, 60),
+    })));
+
+    setGeo(locations.map(loc => ({
+      name: loc,
+      value: randomInt(20, 80),
+    })));
 
     const interval = setInterval(() => {
       const keyword = keywords[randomInt(0, keywords.length - 1)];
-      const severity = ["LOW", "MEDIUM", "HIGH", "CRITICAL"][randomInt(0, 3)];
-      const clusterId = makeClusterId();
+      const severity = ["LOW","MEDIUM","HIGH","CRITICAL"][randomInt(0,3)];
 
       // ALERTS
-      setAlerts((prev) => [
+      setAlerts(prev => [
         {
           time: new Date().toLocaleTimeString(),
           keyword,
           severity,
           source: sources[randomInt(0, sources.length - 1)],
         },
-        ...prev.slice(0, 7),
+        ...prev.slice(0, 6),
       ]);
 
       // CLUSTERS
-      setClusters((prev) => [
+      setClusters(prev => [
         {
-          id: clusterId,
+          id: makeClusterId(),
           keyword,
-          volume: randomInt(25, 75),
+          volume: randomInt(30, 90),
         },
-        ...prev.slice(0, 5),
+        ...prev.slice(0, 4),
       ]);
 
-      // TREND (with mitigation logic)
-      setTrend((prev) => {
-        let value = randomInt(10, 25);
+      // TREND
+      setTrend(prev => [
+        ...prev.slice(1),
+        { time: prev.length, value: randomInt(12, 25) }
+      ]);
 
-        if (risk > 65) value -= randomInt(5, 10);
+      // TIMELINE
+      setTimeline(prev => [
+        ...prev.slice(1),
+        { t: new Date().toLocaleTimeString(), value: randomInt(30, 80) }
+      ]);
 
-        return [...prev.slice(1), { time: prev.length, value }];
-      });
+      // GEO UPDATE
+      setGeo(prev =>
+        prev.map(g => ({
+          ...g,
+          value: Math.max(10, Math.min(100, g.value + randomInt(-5, 8)))
+        }))
+      );
 
-      // RISK ENGINE
-      setRisk((r) => {
+      // RISK
+      setRisk(r => {
         let change = randomInt(-3, 6);
-
-        if (r > 70) change -= randomInt(4, 9);
-
+        if (r > 70) change -= randomInt(3, 8);
         return Math.max(30, Math.min(95, r + change));
       });
 
-      // AGENT LOAD
-      setAgentLoad((l) => {
-        let change = randomInt(-5, 5);
-        if (risk > 65) change += randomInt(3, 8);
+      // LOAD
+      setAgentLoad(l => {
+        let change = randomInt(-4, 5);
+        if (risk > 65) change += randomInt(3, 7);
         return Math.max(40, Math.min(100, l + change));
       });
 
@@ -149,60 +171,87 @@ export default function Page() {
         ⚔️ WAR ROOM COMMAND CENTER
       </h1>
 
-      {/* GRID */}
+      {/* ALERT + TREND */}
       <div className="grid grid-cols-3 gap-4">
 
-        {/* ALERTS */}
-        <div className="col-span-2 bg-zinc-900 rounded-2xl p-4 border border-gray-800">
-          <h2 className="text-lg mb-3">Live Alerts</h2>
-
+        <div className="col-span-2 bg-zinc-900 p-4 rounded-2xl border border-gray-800">
+          <h2 className="mb-3">Live Alerts</h2>
           {alerts.map((a, i) => (
             <div key={i} className="flex justify-between text-sm py-2 border-b border-gray-800">
               <span>{a.time}</span>
               <span>{a.keyword}</span>
               <span>{a.source}</span>
-              <span className={severityColor(a.severity)}>{a.severity}</span>
+              <span className="text-red-400">{a.severity}</span>
             </div>
           ))}
         </div>
 
-        {/* TREND */}
-        <div className="bg-zinc-900 rounded-2xl p-4 border border-gray-800">
-          <h2 className="text-lg mb-3">Threat Trend</h2>
-
+        <div className="bg-zinc-900 p-4 rounded-2xl border border-gray-800">
+          <h2>Trend</h2>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={trend}>
               <XAxis dataKey="time" hide />
               <YAxis hide />
               <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#ef4444" strokeWidth={2} />
+              <Line type="monotone" dataKey="value" stroke="#ef4444" />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
       </div>
 
-      {/* ENTERPRISE LAYER */}
+      {/* GEO + TIMELINE */}
+      <div className="grid grid-cols-2 gap-4 mt-6">
+
+        {/* GEO */}
+        <div className="bg-zinc-900 p-4 rounded-2xl border border-gray-800">
+          <h2 className="mb-2">Geo Activity</h2>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={geo}>
+              <XAxis dataKey="name" />
+              <YAxis hide />
+              <Tooltip />
+              <Bar dataKey="value" fill="#ef4444" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* TIMELINE */}
+        <div className="bg-zinc-900 p-4 rounded-2xl border border-gray-800">
+          <h2 className="mb-2">Escalation Timeline</h2>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={timeline}>
+              <XAxis dataKey="t" hide />
+              <YAxis hide />
+              <Tooltip />
+              <Line type="monotone" dataKey="value" stroke="#f97316" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+      </div>
+
+      {/* SYSTEM */}
       <div className="grid grid-cols-4 gap-4 mt-6">
 
-        <div className="bg-zinc-900 p-4 rounded-2xl border border-gray-800">
-          <h2>Risk Level</h2>
-          <div className="text-4xl text-red-500 font-bold">{risk}%</div>
+        <div className="bg-zinc-900 p-4 rounded-2xl">
+          <h2>Risk</h2>
+          <div className="text-4xl text-red-500">{risk}%</div>
         </div>
 
-        <div className="bg-zinc-900 p-4 rounded-2xl border border-gray-800">
+        <div className="bg-zinc-900 p-4 rounded-2xl">
           <h2>Agent Load</h2>
-          <div className="text-4xl text-yellow-400 font-bold">{agentLoad}%</div>
+          <div className="text-4xl text-yellow-400">{agentLoad}%</div>
         </div>
 
-        <div className="bg-zinc-900 p-4 rounded-2xl border border-gray-800">
-          <h2>System Ops</h2>
-          <div className="text-sm">Agents: {agents}</div>
-          <div className="text-sm">Uptime: {uptime}</div>
+        <div className="bg-zinc-900 p-4 rounded-2xl">
+          <h2>Agents</h2>
+          <div>{agents}</div>
+          <div className="text-sm text-gray-400">{uptime}</div>
         </div>
 
-        <div className="bg-zinc-900 p-4 rounded-2xl border border-gray-800">
-          <h2>Recommendation</h2>
+        <div className="bg-zinc-900 p-4 rounded-2xl">
+          <h2>Mode</h2>
           <div className="text-red-400">
             {risk > 70 ? "Active Mitigation" : "Monitoring"}
           </div>
