@@ -38,7 +38,7 @@ export default function Page(){
   const [risk,setRisk]=useState(65);
   const [prediction,setPrediction]=useState(90);
 
-  const [detected,setDetected]=useState(25000);
+  const [detected,setDetected]=useState(24600);
   const [reported,setReported]=useState(23000);
   const [scrubbed,setScrubbed]=useState(20000);
 
@@ -52,41 +52,54 @@ export default function Page(){
   const agents=120;
   const uptime="452h";
 
-  // 🔁 LOAD FROM LOCAL STORAGE
-  useEffect(()=>{
-    const saved = localStorage.getItem("warroom");
-    if(saved){
-      const data = JSON.parse(saved);
-      setDetected(data.detected);
-      setReported(data.reported);
-      setScrubbed(data.scrubbed);
-      setTodayDetected(data.todayDetected);
-      setTodayReported(data.todayReported);
-      setTodayScrubbed(data.todayScrubbed);
-    }
-  },[]);
-
-  // 💾 SAVE STATE
-  useEffect(()=>{
-    localStorage.setItem("warroom",JSON.stringify({
-      detected,reported,scrubbed,
-      todayDetected,todayReported,todayScrubbed
-    }));
-  },[detected,reported,scrubbed,todayDetected,todayReported,todayScrubbed]);
-
   // 🧠 ENGINE
   useEffect(()=>{
 
     const interval=setInterval(()=>{
 
+      // 🌍 GLOBAL TIME (IST LOCKED)
+      const now = new Date(
+        new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+      );
+
+      const startTime = new Date("2026-04-05T08:30:00");
+      const endTime = new Date("2026-04-05T09:59:00");
+
+      const startValue = 24600;
+      const endValue = 25000;
+
+      let currentDetected = startValue;
+
+      if (now <= endTime) {
+        const progress = (now.getTime() - startTime.getTime()) /
+                         (endTime.getTime() - startTime.getTime());
+
+        currentDetected = Math.floor(
+          startValue + progress * (endValue - startValue)
+        );
+      } else {
+        const extraTime = now.getTime() - endTime.getTime();
+
+        const dailyRate = 1500;
+        const perMs = dailyRate / (24 * 60 * 60 * 1000);
+
+        const extraGrowth = Math.floor(extraTime * perMs);
+
+        currentDetected = endValue + extraGrowth;
+      }
+
+      setDetected(currentDetected);
+      setReported(Math.floor(currentDetected * 0.92));
+      setScrubbed(Math.floor(currentDetected * 0.80));
+
+      // 🔥 ALERTS (still random for now)
       const keyword=keywords[randomInt(0,keywords.length-1)];
       const severity=["LOW","MEDIUM","HIGH","CRITICAL"][randomInt(0,3)];
 
-      // ALERTS
       setAlerts(prev=>{
         const updated=[
           {
-            time:new Date().toLocaleTimeString(),
+            time:now.toLocaleTimeString(),
             keyword,
             severity,
             source:sources[randomInt(0,sources.length-1)]
@@ -115,34 +128,10 @@ export default function Page(){
         return updated;
       });
 
-      // 📈 DETECTION FLOW (REALISTIC)
-      setDetected(d=>{
-        const growth = randomInt(6,12); // controlled growth
-        const newDetected = d + growth;
-
-        setReported(r=>{
-          const reportGrowth = Math.min(growth - 2, randomInt(4,8));
-          return Math.min(newDetected - 1000, r + reportGrowth);
-        });
-
-        setScrubbed(s=>{
-          const scrubGrowth = randomInt(3,6);
-          return Math.min(newDetected - 3000, s + scrubGrowth);
-        });
-
-        return newDetected;
-      });
-
-      // 📊 TODAY
-      setTodayDetected(t=>{
-        const growth = randomInt(2,5);
-        const newToday = t + growth;
-
-        setTodayReported(r=>Math.min(newToday, r + randomInt(1,3)));
-        setTodayScrubbed(s=>Math.min(newToday - 50, s + randomInt(1,2)));
-
-        return newToday;
-      });
+      // 📊 TODAY (keep light growth)
+      setTodayDetected(t=>t+1);
+      setTodayReported(r=>r+1);
+      setTodayScrubbed(s=>s+1);
 
       // 👥 AGENT LOAD
       setAgentLoad(l=>{
@@ -150,11 +139,11 @@ export default function Page(){
         return Math.max(55,Math.min(95,l+change));
       });
 
-      // ⚠️ RISK CALCULATION (REAL LOGIC)
-setRisk(prev => {
-  const backlog = detected - scrubbed;
-  return Math.min(90, Math.max(40, Math.floor(backlog / 500)));
-});
+      // ⚠️ RISK
+      setRisk(()=>{
+        const backlog = currentDetected - scrubbed;
+        return Math.min(90, Math.max(40, Math.floor(backlog / 500)));
+      });
 
       // 🔮 PREDICTION
       setPrediction(p=>{
@@ -162,9 +151,11 @@ setRisk(prev => {
         return Math.max(80,Math.min(98,p+shift));
       });
 
-     }, 12000 + randomInt(-3000, 3000));
+    },1000); // smooth real-time
+
     return()=>clearInterval(interval);
-},[]);
+
+  },[scrubbed]);
 
   return(
     <div className="bg-black min-h-screen text-white p-6">
@@ -253,36 +244,6 @@ setRisk(prev => {
 
           </div>
 
-          <div className="grid grid-cols-3 gap-4 mb-6">
-
-            <div className="bg-zinc-900 p-4 rounded-2xl">
-              <div className="text-sm text-gray-400">Today Detected</div>
-              <div>{todayDetected}</div>
-            </div>
-
-            <div className="bg-zinc-900 p-4 rounded-2xl">
-              <div className="text-sm text-gray-400">Today Reported</div>
-              <div>{todayReported}</div>
-            </div>
-
-            <div className="bg-zinc-900 p-4 rounded-2xl">
-              <div className="text-sm text-gray-400">Today Scrubbed</div>
-              <div>{todayScrubbed}</div>
-            </div>
-
-          </div>
-
-          <div className="bg-zinc-900 p-4 rounded-2xl mb-6">
-            <h2>Top Narratives</h2>
-            <div className="flex gap-3 flex-wrap">
-              {topTags.map((t,i)=>(
-                <div key={i} className="bg-red-900 px-3 py-1 rounded-full text-sm">
-                  {t.key} ({t.count})
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div className="bg-zinc-900 p-4 rounded-2xl mb-6">
             <h2>Live Threat Stream</h2>
 
@@ -299,27 +260,6 @@ setRisk(prev => {
             ))}
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-
-            <div className="bg-zinc-900 p-4 rounded-2xl">
-              <h2>Agents</h2>
-              <div>{agents}</div>
-              <div className="text-sm text-gray-400">{uptime}</div>
-            </div>
-
-            <div className="bg-zinc-900 p-4 rounded-2xl">
-              <h2>Agent Load</h2>
-              <div className="text-yellow-400 text-3xl">{agentLoad}%</div>
-            </div>
-
-            <div className="bg-zinc-900 p-4 rounded-2xl">
-              <h2>Mode</h2>
-              <div className="text-red-400">
-                {risk>70?"Active Mitigation":"Monitoring"}
-              </div>
-            </div>
-
-          </div>
         </>
 
       )}
