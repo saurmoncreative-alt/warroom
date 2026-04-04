@@ -1,3 +1,5 @@
+import "./globals.css";   // ✅ ADD THIS LINE
+
 export const metadata = {
   title: "War Room",
   description: "Command Center",
