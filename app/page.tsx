@@ -151,10 +151,10 @@ export default function Page(){
       });
 
       // ⚠️ RISK CALCULATION (REAL LOGIC)
-      const backlog = detected - scrubbed;
-      let newRisk = Math.min(90, Math.max(40, Math.floor(backlog / 500)));
-
-      setRisk(newRisk);
+setRisk(prev => {
+  const backlog = detected - scrubbed;
+  return Math.min(90, Math.max(40, Math.floor(backlog / 500)));
+});
 
       // 🔮 PREDICTION
       setPrediction(p=>{
@@ -164,8 +164,7 @@ export default function Page(){
 
      }, 12000 + randomInt(-3000, 3000));
     return()=>clearInterval(interval);
-
-  },[detected,scrubbed]);
+},[]);
 
   return(
     <div className="bg-black min-h-screen text-white p-6">
