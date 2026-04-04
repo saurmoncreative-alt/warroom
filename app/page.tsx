@@ -50,7 +50,30 @@ export default function Page(){
   const [topTags,setTopTags]=useState<any[]>([]);
 
   const agents=120;
-  const uptime="452h";
+const [uptime, setUptime] = useState("");
+
+useEffect(() => {
+  const updateUptime = () => {
+    const now = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+    );
+
+    const start = new Date("2026-03-20T01:30:00");
+
+    const diffMs = now.getTime() - start.getTime();
+
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
+
+    setUptime(`${hours}h ${minutes}m`);
+  };
+
+  updateUptime(); // run immediately
+
+  const interval = setInterval(updateUptime, 60000); // update every minute
+
+  return () => clearInterval(interval);
+}, []);
 
   // 🧠 ENGINE
   useEffect(()=>{
