@@ -36,7 +36,7 @@ export default function Page(){
 
   const [alerts,setAlerts]=useState<Alert[]>([]);
   const [risk,setRisk]=useState(65);
-  const [prediction,setPrediction]=useState(95);
+  const [prediction,setPrediction]=useState(90);
 
   const [detected,setDetected]=useState(25000);
   const [reported,setReported]=useState(23000);
@@ -52,7 +52,29 @@ export default function Page(){
   const agents=120;
   const uptime="452h";
 
-  // ENGINE
+  // 🔁 LOAD FROM LOCAL STORAGE
+  useEffect(()=>{
+    const saved = localStorage.getItem("warroom");
+    if(saved){
+      const data = JSON.parse(saved);
+      setDetected(data.detected);
+      setReported(data.reported);
+      setScrubbed(data.scrubbed);
+      setTodayDetected(data.todayDetected);
+      setTodayReported(data.todayReported);
+      setTodayScrubbed(data.todayScrubbed);
+    }
+  },[]);
+
+  // 💾 SAVE STATE
+  useEffect(()=>{
+    localStorage.setItem("warroom",JSON.stringify({
+      detected,reported,scrubbed,
+      todayDetected,todayReported,todayScrubbed
+    }));
+  },[detected,reported,scrubbed,todayDetected,todayReported,todayScrubbed]);
+
+  // 🧠 ENGINE
   useEffect(()=>{
 
     const interval=setInterval(()=>{
@@ -60,6 +82,7 @@ export default function Page(){
       const keyword=keywords[randomInt(0,keywords.length-1)];
       const severity=["LOW","MEDIUM","HIGH","CRITICAL"][randomInt(0,3)];
 
+      // ALERTS
       setAlerts(prev=>{
         const updated=[
           {
@@ -92,41 +115,64 @@ export default function Page(){
         return updated;
       });
 
-        setDetected(d=>{
-  const newDetected = d + randomInt(5,10);
+      // 📈 DETECTION FLOW (REALISTIC)
+      setDetected(d=>{
+        const growth = randomInt(6,12); // controlled growth
+        const newDetected = d + growth;
 
-  setReported(r => Math.min(newDetected - 1000, r + randomInt(3,7))); // always behind
-  setScrubbed(s => Math.min(newDetected - 3000, s + randomInt(2,5)));
+        setReported(r=>{
+          const reportGrowth = Math.min(growth - 2, randomInt(4,8));
+          return Math.min(newDetected - 1000, r + reportGrowth);
+        });
 
-  return newDetected;
-});
+        setScrubbed(s=>{
+          const scrubGrowth = randomInt(3,6);
+          return Math.min(newDetected - 3000, s + scrubGrowth);
+        });
 
+        return newDetected;
+      });
+
+      // 📊 TODAY
       setTodayDetected(t=>{
-  const newToday = t + randomInt(1,4);
+        const growth = randomInt(2,5);
+        const newToday = t + growth;
 
-  setTodayReported(r => Math.min(newToday, r + randomInt(1,3)));
-  setTodayScrubbed(s => Math.min(newToday - 50, s + randomInt(1,2)));
+        setTodayReported(r=>Math.min(newToday, r + randomInt(1,3)));
+        setTodayScrubbed(s=>Math.min(newToday - 50, s + randomInt(1,2)));
 
-  return newToday;
-});
+        return newToday;
+      });
 
+      // 👥 AGENT LOAD
       setAgentLoad(l=>{
-        let change=randomInt(-2,4);
-        return Math.max(50,Math.min(100,l+change));
+        let change=randomInt(-2,3);
+        return Math.max(55,Math.min(95,l+change));
+      });
+
+      // ⚠️ RISK CALCULATION (REAL LOGIC)
+      const backlog = detected - scrubbed;
+      let newRisk = Math.min(90, Math.max(40, Math.floor(backlog / 500)));
+
+      setRisk(newRisk);
+
+      // 🔮 PREDICTION
+      setPrediction(p=>{
+        let shift = randomInt(-1,2);
+        return Math.max(80,Math.min(98,p+shift));
       });
 
     },3000);
 
     return()=>clearInterval(interval);
 
-  },[]);
+  },[detected,scrubbed]);
 
   return(
     <div className="bg-black min-h-screen text-white p-6">
 
       {!loggedIn ? (
 
-        // 🔐 LOGIN
         <div className="flex items-center justify-center h-screen">
           <div className="bg-zinc-900 p-6 rounded-2xl w-80">
             <h2 className="text-lg mb-4">🔐 Secure Access</h2>
@@ -160,7 +206,6 @@ export default function Page(){
       ) : (
 
         <>
-          {/* HEADER + LOGOUT */}
           <div className="flex justify-between items-center border-b border-gray-800 pb-2 mb-2">
             <h1 className="text-2xl font-bold">
               ⚔️ WAR ROOM COMMAND CENTER
@@ -177,12 +222,10 @@ export default function Page(){
             </button>
           </div>
 
-          {/* DOMAIN LINE */}
           <p className="text-xs text-gray-500 mb-4">
             warroom.jansanjog.com | Internal Access Node | Since Mar 20, 01:30 IST
           </p>
 
-          {/* TOTAL */}
           <div className="grid grid-cols-5 gap-4 mb-6">
 
             <div className="bg-zinc-900 p-4 rounded-2xl">
@@ -212,7 +255,6 @@ export default function Page(){
 
           </div>
 
-          {/* TODAY */}
           <div className="grid grid-cols-3 gap-4 mb-6">
 
             <div className="bg-zinc-900 p-4 rounded-2xl">
@@ -232,7 +274,6 @@ export default function Page(){
 
           </div>
 
-          {/* TAGS */}
           <div className="bg-zinc-900 p-4 rounded-2xl mb-6">
             <h2>Top Narratives</h2>
             <div className="flex gap-3 flex-wrap">
@@ -244,7 +285,6 @@ export default function Page(){
             </div>
           </div>
 
-          {/* ALERTS */}
           <div className="bg-zinc-900 p-4 rounded-2xl mb-6">
             <h2>Live Threat Stream</h2>
 
@@ -261,7 +301,6 @@ export default function Page(){
             ))}
           </div>
 
-          {/* SYSTEM */}
           <div className="grid grid-cols-3 gap-4">
 
             <div className="bg-zinc-900 p-4 rounded-2xl">

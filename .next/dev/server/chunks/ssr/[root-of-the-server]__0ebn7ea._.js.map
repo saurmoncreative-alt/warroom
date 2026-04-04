@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/saura/warroom/app/page.tsx"],"sourcesContent":["export default function Page() {\n  return (\n    <div style={{ background: \"#000\", color: \"#fff\", height: \"100vh\", padding: \"20px\" }}>\n      <h1>WAR ROOM WORKING ✅</h1>\n    </div>\n  );\n}"],"names":["Page","style","background","color","height","padding"],"mappings":";;;;;;AAAe,SAASA;IACtB,qBACE,8OAAC;QAAIC,OAAO;YAAEC,YAAY;YAAQC,OAAO;YAAQC,QAAQ;YAASC,SAAS;QAAO;kBAChF,cAAA,8OAAC;sBAAG;;;;;;;;;;;AAGV"}}]
+}
