@@ -162,8 +162,7 @@ export default function Page(){
         return Math.max(80,Math.min(98,p+shift));
       });
 
-    },3000);
-
+     }, 12000 + randomInt(-3000, 3000));
     return()=>clearInterval(interval);
 
   },[detected,scrubbed]);
