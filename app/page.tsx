@@ -39,7 +39,7 @@ export default function Page(){
   const [prediction,setPrediction]=useState(95);
 
   const [detected,setDetected]=useState(25000);
-  const [reported,setReported]=useState(25000);
+  const [reported,setReported]=useState(23000);
   const [scrubbed,setScrubbed]=useState(20000);
 
   const [todayDetected,setTodayDetected]=useState(1100);
@@ -92,13 +92,23 @@ export default function Page(){
         return updated;
       });
 
-      setDetected(d=>d+randomInt(5,10));
-      setReported(r=>r+randomInt(5,10));
-      setScrubbed(s=>s+randomInt(3,7));
+        setDetected(d=>{
+  const newDetected = d + randomInt(5,10);
 
-      setTodayDetected(t=>t+randomInt(1,4));
-      setTodayReported(t=>t+randomInt(1,4));
-      setTodayScrubbed(t=>t+randomInt(1,3));
+  setReported(r => Math.min(newDetected - 1000, r + randomInt(3,7))); // always behind
+  setScrubbed(s => Math.min(newDetected - 3000, s + randomInt(2,5)));
+
+  return newDetected;
+});
+
+      setTodayDetected(t=>{
+  const newToday = t + randomInt(1,4);
+
+  setTodayReported(r => Math.min(newToday, r + randomInt(1,3)));
+  setTodayScrubbed(s => Math.min(newToday - 50, s + randomInt(1,2)));
+
+  return newToday;
+});
 
       setAgentLoad(l=>{
         let change=randomInt(-2,4);
@@ -169,7 +179,7 @@ export default function Page(){
 
           {/* DOMAIN LINE */}
           <p className="text-xs text-gray-500 mb-4">
-            warroom.jansanjog.com | Internal Access Node | Since Apr 20, 01:30 IST
+            warroom.jansanjog.com | Internal Access Node | Since Mar 20, 01:30 IST
           </p>
 
           {/* TOTAL */}
