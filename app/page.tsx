@@ -57,7 +57,6 @@ export default function Page(){
 
     const interval=setInterval(()=>{
 
-      // 🌍 GLOBAL TIME (IST LOCKED)
       const now = new Date(
         new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
       );
@@ -92,7 +91,7 @@ export default function Page(){
       setReported(Math.floor(currentDetected * 0.92));
       setScrubbed(Math.floor(currentDetected * 0.80));
 
-      // 🔥 ALERTS (still random for now)
+      // Alerts
       const keyword=keywords[randomInt(0,keywords.length-1)];
       const severity=["LOW","MEDIUM","HIGH","CRITICAL"][randomInt(0,3)];
 
@@ -128,30 +127,30 @@ export default function Page(){
         return updated;
       });
 
-      // 📊 TODAY (keep light growth)
+      // Today stats
       setTodayDetected(t=>t+1);
       setTodayReported(r=>r+1);
       setTodayScrubbed(s=>s+1);
 
-      // 👥 AGENT LOAD
+      // Agent load
       setAgentLoad(l=>{
         let change=randomInt(-2,3);
         return Math.max(55,Math.min(95,l+change));
       });
 
-      // ⚠️ RISK
+      // Risk
       setRisk(()=>{
         const backlog = currentDetected - scrubbed;
         return Math.min(90, Math.max(40, Math.floor(backlog / 500)));
       });
 
-      // 🔮 PREDICTION
+      // Prediction
       setPrediction(p=>{
         let shift = randomInt(-1,2);
         return Math.max(80,Math.min(98,p+shift));
       });
 
-    },1000); // smooth real-time
+    },1000);
 
     return()=>clearInterval(interval);
 
@@ -215,8 +214,8 @@ export default function Page(){
             warroom.jansanjog.com | Internal Access Node | Since Mar 20, 01:30 IST
           </p>
 
+          {/* TOP METRICS */}
           <div className="grid grid-cols-5 gap-4 mb-6">
-
             <div className="bg-zinc-900 p-4 rounded-2xl">
               <div className="text-sm text-gray-400">Total Detected</div>
               <div className="text-3xl">{detected}</div>
@@ -241,9 +240,39 @@ export default function Page(){
               <div className="text-sm text-gray-400">Prediction</div>
               <div className="text-3xl text-orange-400">{prediction}%</div>
             </div>
-
           </div>
 
+          {/* TODAY */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <div className="text-sm text-gray-400">Today Detected</div>
+              <div>{todayDetected}</div>
+            </div>
+
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <div className="text-sm text-gray-400">Today Reported</div>
+              <div>{todayReported}</div>
+            </div>
+
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <div className="text-sm text-gray-400">Today Scrubbed</div>
+              <div>{todayScrubbed}</div>
+            </div>
+          </div>
+
+          {/* TOP TAGS */}
+          <div className="bg-zinc-900 p-4 rounded-2xl mb-6">
+            <h2>Top Narratives</h2>
+            <div className="flex gap-3 flex-wrap">
+              {topTags.map((t,i)=>(
+                <div key={i} className="bg-red-900 px-3 py-1 rounded-full text-sm">
+                  {t.key} ({t.count})
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* LIVE FEED */}
           <div className="bg-zinc-900 p-4 rounded-2xl mb-6">
             <h2>Live Threat Stream</h2>
 
@@ -260,10 +289,29 @@ export default function Page(){
             ))}
           </div>
 
+          {/* AGENTS PANEL */}
+          <div className="grid grid-cols-3 gap-4 mt-6">
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <h2>Agents</h2>
+              <div>{agents}</div>
+              <div className="text-sm text-gray-400">{uptime}</div>
+            </div>
+
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <h2>Agent Load</h2>
+              <div className="text-yellow-400 text-3xl">{agentLoad}%</div>
+            </div>
+
+            <div className="bg-zinc-900 p-4 rounded-2xl">
+              <h2>Mode</h2>
+              <div className="text-red-400">
+                {risk>70?"Active Mitigation":"Monitoring"}
+              </div>
+            </div>
+          </div>
+
         </>
-
       )}
-
     </div>
   );
 }
