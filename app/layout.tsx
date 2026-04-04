@@ -14,7 +14,10 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "War Room Command Center",
-  description: "Internal Monitoring System | Jansanjog",
+  description: "Internal Monitoring System",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
