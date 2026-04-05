@@ -175,7 +175,7 @@ setTodayScrubbed(Math.floor(currentDetected * 0.80 * todayRatio));
         return Math.max(80,Math.min(98,p+shift));
       });
 
-    }, 50000);
+    }, 1000);
 
     return()=>clearInterval(interval);
 
