@@ -36,7 +36,7 @@ const severityOrder = {
 
 export default function Page() {
   const [loggedIn, setLoggedIn] = useState(false);
-  const [isAuthenticating, setIsAuthenticating] = useState(false); // Hollywood login state
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [password, setPassword] = useState("");
 
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -57,7 +57,7 @@ export default function Page() {
   const agents = 120;
   const [uptime, setUptime] = useState("");
 
-  // 🔥 PRELOAD ALERTS (Fixes empty UI on load)
+  // 🔥 PRELOAD ALERTS
   useEffect(() => {
     const now = new Date(
       new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
@@ -67,7 +67,7 @@ export default function Page() {
 
     for (let i = 0; i < 12; i++) {
       initialAlerts.push({
-        time: new Date(now.getTime() - i * 15000).toLocaleTimeString(), // spaced 15 sec apart
+        time: new Date(now.getTime() - i * 15000).toLocaleTimeString(),
         keyword: keywords[randomInt(0, keywords.length - 1)],
         severity: ["LOW", "MEDIUM", "HIGH", "CRITICAL"][randomInt(0, 3)],
         source: sources[randomInt(0, sources.length - 1)],
@@ -75,14 +75,12 @@ export default function Page() {
       });
     }
 
-    // Sort the initial batch by severity to match the main engine logic
     initialAlerts.sort(
       (a, b) =>
         severityOrder[b.severity as keyof typeof severityOrder] -
         severityOrder[a.severity as keyof typeof severityOrder]
     );
 
-    // Calculate initial Top Narratives so the side panel is populated instantly
     const map: any = {};
     initialAlerts.forEach((a) => {
       map[a.keyword] = (map[a.keyword] || 0) + 1;
@@ -116,7 +114,7 @@ export default function Page() {
     return () => clearInterval(interval);
   }, []);
 
-  // 🧠 REALISTIC BURST ENGINE (~1500/day speed)
+  // 🧠 ENGINE
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
@@ -132,9 +130,7 @@ export default function Page() {
 
       let currentDetected = startValue;
 
-      // Calculate baseline detected volume
       if (now <= endTime) {
-        // Safe math: Prevents negative progress if booted early
         const progress = Math.max(
           0,
           (now.getTime() - startTime.getTime()) /
@@ -154,7 +150,6 @@ export default function Page() {
 
       setDetected(currentDetected);
 
-      // DATA JITTER: Imperfect math for realism with defensive boundaries
       const reportedJitter = randomInt(-15, 15);
       const scrubbedJitter = randomInt(-25, 25);
       
@@ -171,23 +166,18 @@ export default function Page() {
       setReported(currentReported);
       setScrubbed(currentScrubbed);
 
-      // CORRELATED METRICS: Risk and Load based on actual backlog
       const backlog = currentDetected - currentScrubbed;
       
-      // Agent load spikes if backlog is high
       let calculatedLoad = Math.floor(backlog / 60) + randomInt(-3, 3);
       setAgentLoad(Math.max(45, Math.min(99, calculatedLoad)));
 
-      // Risk level follows backlog size
       setRisk(Math.min(90, Math.max(40, Math.floor(backlog / 500))));
 
-      // Prediction floats naturally
       setPrediction((p) => {
         let shift = randomInt(-1, 2);
         return Math.max(80, Math.min(98, p + shift));
       });
 
-      // ALERTS GENERATION
       const keyword = keywords[randomInt(0, keywords.length - 1)];
       const severity = ["LOW", "MEDIUM", "HIGH", "CRITICAL"][randomInt(0, 3)];
       const source = sources[randomInt(0, sources.length - 1)];
@@ -203,16 +193,14 @@ export default function Page() {
             location, 
           },
           ...prev,
-        ].slice(0, 12); // Keeping top 12 visible
+        ].slice(0, 12); 
 
-        // Sort by severity
         updated.sort(
           (a, b) =>
             severityOrder[b.severity as keyof typeof severityOrder] -
             severityOrder[a.severity as keyof typeof severityOrder]
         );
 
-        // Calculate Top Narratives
         const map: any = {};
         updated.forEach((a) => {
           map[a.keyword] = (map[a.keyword] || 0) + 1;
@@ -227,19 +215,15 @@ export default function Page() {
         return updated;
       });
 
-      // TODAY STATS (with slight jitter)
       const todayRatio = 0.05;
       setTodayDetected(Math.floor(currentDetected * todayRatio) + randomInt(-2, 5));
       setTodayReported(Math.floor(currentReported * todayRatio) + randomInt(-2, 5));
       setTodayScrubbed(Math.floor(currentScrubbed * todayRatio) + randomInt(-2, 5));
 
-      // BURST TIMING: Slowed down to ~1 alert per minute (1500/day)
-      // Randomizes between 40,000ms (40s) and 80,000ms (80s)
       const nextTick = randomInt(40000, 80000);
       timeoutId = setTimeout(generateTick, nextTick);
     };
 
-    // Kick off the loop
     generateTick();
 
     return () => clearTimeout(timeoutId);
@@ -247,10 +231,10 @@ export default function Page() {
 
   // 🖥️ UI RENDER
   return (
-    <div className="bg-black min-h-screen text-white p-6 font-mono">
+    <div className="bg-black min-h-screen text-white p-3 md:p-6 font-mono">
       {!loggedIn ? (
-        <div className="flex items-center justify-center h-screen">
-          <div className="bg-zinc-900 p-6 rounded-2xl w-80 border border-gray-800 shadow-2xl">
+        <div className="flex items-center justify-center h-screen px-4">
+          <div className="bg-zinc-900 p-6 rounded-2xl w-full max-w-sm border border-gray-800 shadow-2xl">
             <h2 className="text-lg mb-4 text-gray-200">
               {isAuthenticating ? "⏳ Authenticating..." : "🔐 Secure Access"}
             </h2>
@@ -270,7 +254,7 @@ export default function Page() {
                   setTimeout(() => {
                     setLoggedIn(true);
                     setIsAuthenticating(false);
-                  }, 1500); // 1.5s Hollywood delay
+                  }, 1500); 
                 } else {
                   alert("⚠️ Unauthorized Node Access Denied");
                 }
@@ -293,8 +277,8 @@ export default function Page() {
         </div>
       ) : (
         <>
-          <div className="flex justify-between items-center border-b border-gray-800 pb-2 mb-2">
-            <h1 className="text-2xl font-bold tracking-wider">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-2 mb-2 gap-3 sm:gap-0">
+            <h1 className="text-lg md:text-2xl font-bold tracking-wider">
               <span className="text-red-600 animate-pulse mr-2">●</span>
               WAR ROOM COMMAND CENTER
             </h1>
@@ -304,19 +288,19 @@ export default function Page() {
                 setLoggedIn(false);
                 setPassword("");
               }}
-              className="bg-zinc-800 border border-gray-700 px-3 py-1 rounded text-sm hover:bg-red-800 transition-colors"
+              className="bg-zinc-800 border border-gray-700 px-3 py-1 rounded text-sm hover:bg-red-800 transition-colors self-end sm:self-auto"
             >
               Sever Connection
             </button>
           </div>
 
           <p className="text-xs text-gray-500 mb-6">
-            warroom.jansanjog.com | Internal Access Node | Uptime: {uptime}
+            warroom.jansanjog.com | Internal Node | Uptime: {uptime}
           </p>
 
-          {/* TOP METRICS */}
-          <div className="grid grid-cols-5 gap-4 mb-6">
-            <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl">
+          {/* TOP METRICS - Responsive Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
+            <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl col-span-2 md:col-span-1 lg:col-span-1">
               <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total Detected</div>
               <div className="text-3xl font-light">{detected.toLocaleString()}</div>
             </div>
@@ -344,20 +328,20 @@ export default function Page() {
             </div>
           </div>
 
-          {/* TWO COLUMN LAYOUT: LIVE FEED + SIDE PANELS */}
-          <div className="grid grid-cols-3 gap-6 mb-6">
+          {/* TWO COLUMN LAYOUT - Stacks on Mobile */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             
-            {/* LIVE THREAT STREAM (Takes up 2 columns) */}
-            <div className="col-span-2 bg-zinc-900 border border-gray-800 p-4 rounded-xl h-96 overflow-hidden flex flex-col">
+            {/* LIVE THREAT STREAM */}
+            <div className="col-span-1 lg:col-span-2 bg-zinc-900 border border-gray-800 p-3 md:p-4 rounded-xl h-[500px] md:h-96 overflow-hidden flex flex-col">
               <h2 className="text-sm text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">
                 Live Regional Threat Stream
               </h2>
               
-              <div className="flex-1 flex flex-col gap-1 overflow-y-auto pr-2 custom-scrollbar">
+              <div className="flex-1 flex flex-col gap-2 md:gap-1 overflow-y-auto pr-2 custom-scrollbar">
                 {alerts.map((a, i) => (
                   <div
                     key={i}
-                    className={`grid grid-cols-5 text-sm py-2 px-3 rounded ${
+                    className={`flex flex-col md:grid md:grid-cols-5 text-sm py-2 px-3 rounded gap-1 md:gap-0 ${
                       a.severity === "CRITICAL"
                         ? "bg-red-950/30 border border-red-900/50 text-red-400 animate-pulse"
                         : a.severity === "HIGH"
@@ -365,25 +349,38 @@ export default function Page() {
                         : "text-gray-300 hover:bg-zinc-800"
                     }`}
                   >
-                    <span className="text-gray-500 font-mono text-xs flex items-center">{a.time}</span>
-                    <span className="font-bold col-span-1">{a.keyword}</span>
-                    <span className="text-gray-400 truncate">{a.location}</span>
-                    <span className="text-gray-400 text-xs flex items-center">{a.source}</span>
-                    <span className={`text-right text-xs font-bold flex items-center justify-end ${
-                        a.severity === "CRITICAL" ? "text-red-500" : 
-                        a.severity === "HIGH" ? "text-orange-500" : "text-gray-500"
-                    }`}>
-                      [{a.severity}]
-                    </span>
+                    {/* Mobile: Top Row (Time + Severity) | Desktop: Col 1 & 5 */}
+                    <div className="flex justify-between md:contents">
+                      <span className="text-gray-500 font-mono text-xs flex items-center">{a.time}</span>
+                      <span className={`text-right text-xs font-bold md:hidden flex items-center ${
+                          a.severity === "CRITICAL" ? "text-red-500" : 
+                          a.severity === "HIGH" ? "text-orange-500" : "text-gray-500"
+                      }`}>
+                        [{a.severity}]
+                      </span>
+                    </div>
+
+                    {/* Mobile: Bottom Row (Keyword + Location + Source Stacked) | Desktop: Col 2, 3, 4 */}
+                    <div className="flex flex-col md:contents gap-1">
+                      <span className="font-bold text-base md:text-sm md:col-span-1">{a.keyword}</span>
+                      <span className="text-gray-400 truncate text-xs md:text-sm">{a.location}</span>
+                      <span className="text-gray-400 text-xs flex items-center">{a.source}</span>
+                      {/* Hidden on Mobile, shown on Desktop at the end */}
+                      <span className={`hidden md:flex text-right text-xs font-bold items-center justify-end ${
+                          a.severity === "CRITICAL" ? "text-red-500" : 
+                          a.severity === "HIGH" ? "text-orange-500" : "text-gray-500"
+                      }`}>
+                        [{a.severity}]
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* SIDE PANELS (Takes up 1 column) */}
+            {/* SIDE PANELS */}
             <div className="flex flex-col gap-6">
               
-              {/* TOP NARRATIVES */}
               <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl flex-1">
                 <h2 className="text-sm text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">
                   Top Trending Narratives
@@ -398,7 +395,6 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* DAILY VOLUME COMPACT */}
               <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl">
                 <h2 className="text-sm text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">
                   Today's Volume
@@ -420,8 +416,8 @@ export default function Page() {
             </div>
           </div>
 
-          {/* AGENTS PANEL */}
-          <div className="grid grid-cols-3 gap-4">
+          {/* AGENTS PANEL - Stacks on mobile */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl flex justify-between items-center">
               <div>
                 <h2 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Active Agents</h2>
