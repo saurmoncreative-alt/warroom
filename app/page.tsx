@@ -151,9 +151,11 @@ useEffect(() => {
       });
 
       // Today stats
-      setTodayDetected(t=>t+1);
-      setTodayReported(r=>r+1);
-      setTodayScrubbed(s=>s+1);
+ const todayRatio = 0.05; // ~5% of total as today's volume
+
+setTodayDetected(Math.floor(currentDetected * todayRatio));
+setTodayReported(Math.floor(currentDetected * 0.92 * todayRatio));
+setTodayScrubbed(Math.floor(currentDetected * 0.80 * todayRatio));
 
       // Agent load
       setAgentLoad(l=>{
