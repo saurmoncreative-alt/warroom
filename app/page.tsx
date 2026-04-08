@@ -43,10 +43,10 @@ export default function Page() {
   const [risk, setRisk] = useState(65);
   const [prediction, setPrediction] = useState(99); // Pegged high
 
-  // Scaled up baseline numbers for Election Eve
-  const [detected, setDetected] = useState(31000);
-  const [reported, setReported] = useState(28520);
-  const [scrubbed, setScrubbed] = useState(24800);
+  // Scaled up baseline numbers to new requested 40,123 base
+  const [detected, setDetected] = useState(40123);
+  const [reported, setReported] = useState(36913); // Approx 92%
+  const [scrubbed, setScrubbed] = useState(32098); // Approx 80%
 
   const [todayDetected, setTodayDetected] = useState(0);
   const [todayReported, setTodayReported] = useState(0);
@@ -127,15 +127,15 @@ export default function Page() {
         new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
       );
 
-      // 🔥 DYNAMIC TIMELINE LOCK: Anchors to 'Today' to prevent runaway math
+      // 🔥 FIX: Start time is now Midnight. This ensures it NEVER stalls, no matter what time it is.
       const startTime = new Date(now);
-      startTime.setHours(8, 0, 0, 0); // Day starts at 8 AM
+      startTime.setHours(0, 0, 0, 0); 
 
       const endTime = new Date(now);
-      endTime.setHours(23, 59, 59, 0); // Stretches until midnight for election eve
+      endTime.setHours(23, 59, 59, 0); 
       
-      const startValue = 31000; // Forced Election Eve Baseline
-      const endValue = 31000 + dailyRate;
+      const startValue = 40123; // New Requested Baseline
+      const endValue = 40123 + dailyRate;
 
       let currentDetected = endValue;
 
