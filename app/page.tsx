@@ -41,21 +41,21 @@ export default function Page() {
 
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [risk, setRisk] = useState(65);
-  const [prediction, setPrediction] = useState(90);
+  const [prediction, setPrediction] = useState(99); // Pegged high
 
-  // Scaled up baseline numbers to match your new targets
-  const [detected, setDetected] = useState(30487);
-  const [reported, setReported] = useState(28060);
-  const [scrubbed, setScrubbed] = useState(24403);
+  // Scaled up baseline numbers for Election Eve
+  const [detected, setDetected] = useState(31000);
+  const [reported, setReported] = useState(28520);
+  const [scrubbed, setScrubbed] = useState(24800);
 
   const [todayDetected, setTodayDetected] = useState(0);
   const [todayReported, setTodayReported] = useState(0);
   const [todayScrubbed, setTodayScrubbed] = useState(0);
 
-  const [agentLoad, setAgentLoad] = useState(72);
+  const [agentLoad, setAgentLoad] = useState(100); // Pegged high
   const [topTags, setTopTags] = useState<any[]>([]);
 
-  // Scaled up agent force
+  // 800 Agents deployed
   const agents = 800;
   const dailyRate = 10000;
   
@@ -127,11 +127,15 @@ export default function Page() {
         new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
       );
 
-      // FIX #1: Corrected Timeline Lock (Start time is now before End time)
-      const startTime = new Date("2026-04-05T08:30:00+05:30");
-      const endTime = new Date("2026-04-05T09:59:00+05:30");
-      const startValue = 24600;
-      const endValue = 30500;
+      // 🔥 DYNAMIC TIMELINE LOCK: Anchors to 'Today' to prevent runaway math
+      const startTime = new Date(now);
+      startTime.setHours(8, 0, 0, 0); // Day starts at 8 AM
+
+      const endTime = new Date(now);
+      endTime.setHours(23, 59, 59, 0); // Stretches until midnight for election eve
+      
+      const startValue = 31000; // Forced Election Eve Baseline
+      const endValue = 31000 + dailyRate;
 
       let currentDetected = endValue;
 
@@ -154,7 +158,7 @@ export default function Page() {
 
       setDetected(currentDetected);
 
-      // FIX #4: Restored Math.max/min safeguards to prevent negative numbers
+      // DATA JITTER: Math safeguards applied
       const currentReported = Math.max(
         0,
         Math.floor(currentDetected * 0.92) + randomInt(-15, 15)
@@ -170,17 +174,16 @@ export default function Page() {
 
       const backlog = currentDetected - currentScrubbed;
       
-      // FIX #3: Agent load now scales correctly against the 800-agent capacity
-      let calculatedLoad = Math.floor(backlog / (agents * 0.8)) + randomInt(-3, 3);
-      setAgentLoad(Math.max(45, Math.min(99, calculatedLoad)));
+      // ELECTION EVE OVERRIDE: Force Load Capacity to redline at 99-100%
+      setAgentLoad(randomInt(99, 100));
 
+      // Risk level follows backlog size naturally
       setRisk(Math.min(90, Math.max(40, Math.floor(backlog / 500))));
 
-      setPrediction((p) => {
-        let shift = randomInt(-1, 2);
-        return Math.max(80, Math.min(98, p + shift));
-      });
+      // ELECTION EVE OVERRIDE: Force Prediction to redline at 98-99%
+      setPrediction(randomInt(98, 99));
 
+      // ALERTS GENERATION
       const keyword = keywords[randomInt(0, keywords.length - 1)];
       const severity = ["LOW", "MEDIUM", "HIGH", "CRITICAL"][randomInt(0, 3)];
       const source = sources[randomInt(0, sources.length - 1)];
@@ -218,7 +221,7 @@ export default function Page() {
         return updated;
       });
 
-      // 📊 TODAY LOGIC (Math safeguards applied here too)
+      // 📊 TODAY LOGIC
       const startOfDay = new Date(now);
       startOfDay.setHours(0, 0, 0, 0);
       const elapsedMs = now.getTime() - startOfDay.getTime();
@@ -229,7 +232,7 @@ export default function Page() {
       setTodayReported(Math.max(0, Math.floor(todayBase * 0.92) + randomInt(-15, 15)));
       setTodayScrubbed(Math.max(0, Math.floor(todayBase * 0.80) + randomInt(-20, 20)));
 
-      // FIX #2: Increased refresh rate to match 10,000/day volume (fires every 5-12s)
+      // Refresh rate to match high volume (fires every 5-12s)
       const nextTick = randomInt(5000, 12000);
       timeoutId = setTimeout(generateTick, nextTick);
     };
@@ -431,7 +434,7 @@ export default function Page() {
             <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl">
               <h2 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Agent Load Capacity</h2>
               <div className="flex items-center gap-3">
-                <div className="text-2xl text-yellow-400">{agentLoad}%</div>
+                <div className="text-2xl text-red-500">{agentLoad}%</div>
                 <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
                   <div 
                     className={`h-full ${agentLoad > 85 ? 'bg-red-500' : 'bg-yellow-500'}`} 
