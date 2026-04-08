@@ -43,18 +43,22 @@ export default function Page() {
   const [risk, setRisk] = useState(65);
   const [prediction, setPrediction] = useState(90);
 
-  const [detected, setDetected] = useState(24600);
-  const [reported, setReported] = useState(23000);
-  const [scrubbed, setScrubbed] = useState(20000);
+  // Scaled up baseline numbers to match your new targets
+  const [detected, setDetected] = useState(30487);
+  const [reported, setReported] = useState(28060);
+  const [scrubbed, setScrubbed] = useState(24403);
 
-  const [todayDetected, setTodayDetected] = useState(1100);
-  const [todayReported, setTodayReported] = useState(1100);
-  const [todayScrubbed, setTodayScrubbed] = useState(1000);
+  const [todayDetected, setTodayDetected] = useState(0);
+  const [todayReported, setTodayReported] = useState(0);
+  const [todayScrubbed, setTodayScrubbed] = useState(0);
 
   const [agentLoad, setAgentLoad] = useState(72);
   const [topTags, setTopTags] = useState<any[]>([]);
 
-  const agents = 120;
+  // Scaled up agent force
+  const agents = 800;
+  const dailyRate = 10000;
+  
   const [uptime, setUptime] = useState("");
 
   // 🔥 PRELOAD ALERTS
@@ -95,13 +99,13 @@ export default function Page() {
     setAlerts(initialAlerts);
   }, []);
 
-  // 🕒 UPTIME TRACKER
+  // 🕒 UPTIME TRACKER (IST SAFE)
   useEffect(() => {
     const updateUptime = () => {
       const now = new Date(
         new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
       );
-      const start = new Date("2026-03-20T01:30:00");
+      const start = new Date("2026-03-20T01:30:00+05:30");
       const diffMs = now.getTime() - start.getTime();
       const hours = Math.floor(diffMs / (1000 * 60 * 60));
       const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
@@ -114,7 +118,7 @@ export default function Page() {
     return () => clearInterval(interval);
   }, []);
 
-  // 🧠 ENGINE
+  // 🧠 REALISTIC BURST ENGINE (10,000/day speed)
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
@@ -123,12 +127,13 @@ export default function Page() {
         new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
       );
 
-      const startTime = new Date("2026-04-05T08:30:00");
-      const endTime = new Date("2026-04-05T09:59:00");
+      // FIX #1: Corrected Timeline Lock (Start time is now before End time)
+      const startTime = new Date("2026-04-05T08:30:00+05:30");
+      const endTime = new Date("2026-04-05T09:59:00+05:30");
       const startValue = 24600;
-      const endValue = 25000;
+      const endValue = 30500;
 
-      let currentDetected = startValue;
+      let currentDetected = endValue;
 
       if (now <= endTime) {
         const progress = Math.max(
@@ -142,7 +147,6 @@ export default function Page() {
         );
       } else {
         const extraTime = now.getTime() - endTime.getTime();
-        const dailyRate = 1500;
         const perMs = dailyRate / (24 * 60 * 60 * 1000);
         const extraGrowth = Math.floor(extraTime * perMs);
         currentDetected = endValue + extraGrowth;
@@ -150,17 +154,15 @@ export default function Page() {
 
       setDetected(currentDetected);
 
-      const reportedJitter = randomInt(-15, 15);
-      const scrubbedJitter = randomInt(-25, 25);
-      
+      // FIX #4: Restored Math.max/min safeguards to prevent negative numbers
       const currentReported = Math.max(
         0,
-        Math.floor(currentDetected * 0.92) + reportedJitter
+        Math.floor(currentDetected * 0.92) + randomInt(-15, 15)
       );
 
       const currentScrubbed = Math.min(
         currentReported,
-        Math.max(0, Math.floor(currentDetected * 0.80) + scrubbedJitter)
+        Math.max(0, Math.floor(currentDetected * 0.80) + randomInt(-25, 25))
       );
 
       setReported(currentReported);
@@ -168,7 +170,8 @@ export default function Page() {
 
       const backlog = currentDetected - currentScrubbed;
       
-      let calculatedLoad = Math.floor(backlog / 60) + randomInt(-3, 3);
+      // FIX #3: Agent load now scales correctly against the 800-agent capacity
+      let calculatedLoad = Math.floor(backlog / (agents * 0.8)) + randomInt(-3, 3);
       setAgentLoad(Math.max(45, Math.min(99, calculatedLoad)));
 
       setRisk(Math.min(90, Math.max(40, Math.floor(backlog / 500))));
@@ -215,12 +218,19 @@ export default function Page() {
         return updated;
       });
 
-      const todayRatio = 0.05;
-      setTodayDetected(Math.floor(currentDetected * todayRatio) + randomInt(-2, 5));
-      setTodayReported(Math.floor(currentReported * todayRatio) + randomInt(-2, 5));
-      setTodayScrubbed(Math.floor(currentScrubbed * todayRatio) + randomInt(-2, 5));
+      // 📊 TODAY LOGIC (Math safeguards applied here too)
+      const startOfDay = new Date(now);
+      startOfDay.setHours(0, 0, 0, 0);
+      const elapsedMs = now.getTime() - startOfDay.getTime();
+      const progress = Math.max(0, Math.min(1, elapsedMs / (24 * 60 * 60 * 1000)));
+      const todayBase = Math.floor(dailyRate * progress);
 
-      const nextTick = randomInt(40000, 80000);
+      setTodayDetected(Math.max(0, todayBase + randomInt(-20, 20)));
+      setTodayReported(Math.max(0, Math.floor(todayBase * 0.92) + randomInt(-15, 15)));
+      setTodayScrubbed(Math.max(0, Math.floor(todayBase * 0.80) + randomInt(-20, 20)));
+
+      // FIX #2: Increased refresh rate to match 10,000/day volume (fires every 5-12s)
+      const nextTick = randomInt(5000, 12000);
       timeoutId = setTimeout(generateTick, nextTick);
     };
 
@@ -229,7 +239,7 @@ export default function Page() {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // 🖥️ UI RENDER
+  // 🖥️ UI RENDER (Fully Responsive & Styled)
   return (
     <div className="bg-black min-h-screen text-white p-3 md:p-6 font-mono">
       {!loggedIn ? (
@@ -298,7 +308,6 @@ export default function Page() {
             warroom.jansanjog.com | Internal Node | Uptime: {uptime}
           </p>
 
-          {/* TOP METRICS - Responsive Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
             <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl col-span-2 md:col-span-1 lg:col-span-1">
               <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total Detected</div>
@@ -328,10 +337,8 @@ export default function Page() {
             </div>
           </div>
 
-          {/* TWO COLUMN LAYOUT - Stacks on Mobile */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             
-            {/* LIVE THREAT STREAM */}
             <div className="col-span-1 lg:col-span-2 bg-zinc-900 border border-gray-800 p-3 md:p-4 rounded-xl h-[500px] md:h-96 overflow-hidden flex flex-col">
               <h2 className="text-sm text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">
                 Live Regional Threat Stream
@@ -349,7 +356,6 @@ export default function Page() {
                         : "text-gray-300 hover:bg-zinc-800"
                     }`}
                   >
-                    {/* Mobile: Top Row (Time + Severity) | Desktop: Col 1 & 5 */}
                     <div className="flex justify-between md:contents">
                       <span className="text-gray-500 font-mono text-xs flex items-center">{a.time}</span>
                       <span className={`text-right text-xs font-bold md:hidden flex items-center ${
@@ -360,12 +366,10 @@ export default function Page() {
                       </span>
                     </div>
 
-                    {/* Mobile: Bottom Row (Keyword + Location + Source Stacked) | Desktop: Col 2, 3, 4 */}
                     <div className="flex flex-col md:contents gap-1">
                       <span className="font-bold text-base md:text-sm md:col-span-1">{a.keyword}</span>
                       <span className="text-gray-400 truncate text-xs md:text-sm">{a.location}</span>
                       <span className="text-gray-400 text-xs flex items-center">{a.source}</span>
-                      {/* Hidden on Mobile, shown on Desktop at the end */}
                       <span className={`hidden md:flex text-right text-xs font-bold items-center justify-end ${
                           a.severity === "CRITICAL" ? "text-red-500" : 
                           a.severity === "HIGH" ? "text-orange-500" : "text-gray-500"
@@ -378,7 +382,6 @@ export default function Page() {
               </div>
             </div>
 
-            {/* SIDE PANELS */}
             <div className="flex flex-col gap-6">
               
               <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl flex-1">
@@ -416,7 +419,6 @@ export default function Page() {
             </div>
           </div>
 
-          {/* AGENTS PANEL - Stacks on mobile */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl flex justify-between items-center">
               <div>
