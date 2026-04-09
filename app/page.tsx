@@ -174,8 +174,8 @@ export default function Page() {
 
       const backlog = currentDetected - currentScrubbed;
       
-      // ELECTION EVE OVERRIDE: Force Load Capacity to redline at 99-100%
-      setAgentLoad(randomInt(99, 100));
+// ELECTION OVER: Agents sent home
+      setAgentLoad(0);
 
       // Risk level follows backlog size naturally
       setRisk(Math.min(90, Math.max(40, Math.floor(backlog / 500))));
@@ -232,12 +232,12 @@ export default function Page() {
       setTodayReported(Math.max(0, Math.floor(todayBase * 0.92) + randomInt(-15, 15)));
       setTodayScrubbed(Math.max(0, Math.floor(todayBase * 0.80) + randomInt(-20, 20)));
 
-      // Refresh rate to match high volume (fires every 5-12s)
-      const nextTick = randomInt(5000, 12000);
-      timeoutId = setTimeout(generateTick, nextTick);
+// ELECTION OVER: Engine paused. 
+      // const nextTick = randomInt(5000, 12000);
+      // timeoutId = setTimeout(generateTick, nextTick);
     };
 
-    generateTick();
+    generateTick(); // It will fire exactly once on load to calculate final math, then stop forever.
 
     return () => clearTimeout(timeoutId);
   }, []);
@@ -428,7 +428,7 @@ export default function Page() {
                 <h2 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Active Agents</h2>
                 <div className="text-2xl">{agents}</div>
               </div>
-              <div className="h-2 w-2 rounded-full bg-green-500 animate-ping"></div>
+              <div className="h-2 w-2 rounded-full bg-gray-600"></div>
             </div>
 
             <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl">
@@ -444,12 +444,12 @@ export default function Page() {
               </div>
             </div>
 
-            <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl">
-              <h2 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Current Protocol</h2>
-              <div className={`text-xl mt-1 font-bold ${risk > 70 ? "text-red-500 animate-pulse" : "text-green-500"}`}>
-                {risk > 70 ? "DEFCON: ACTIVE MITIGATION" : "PASSIVE MONITORING"}
-              </div>
-            </div>
+            <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl opacity-75">
+  <h2 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Current Protocol</h2>
+  <div className="text-xl mt-1 font-bold text-gray-500">
+    STANDBY: ELECTION CONCLUDED
+  </div>
+</div>
           </div>
 
         </>
