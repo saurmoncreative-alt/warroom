@@ -61,11 +61,10 @@ export default function Page() {
   
   const [uptime, setUptime] = useState("");
 
-  // 🔥 PRELOAD ALERTS
+  // 🔥 PRELOAD ALERTS (ARCHIVED)
   useEffect(() => {
-    const now = new Date(
-      new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
-    );
+    // HARD FROZEN ARCHIVE TIME
+    const now = new Date("2026-04-09T18:00:00+05:30"); 
 
     const initialAlerts = [];
 
@@ -99,35 +98,27 @@ export default function Page() {
     setAlerts(initialAlerts);
   }, []);
 
-  // 🕒 UPTIME TRACKER (IST SAFE)
+  // 🕒 UPTIME TRACKER (ARCHIVED)
   useEffect(() => {
-    const updateUptime = () => {
-      const now = new Date(
-        new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
-      );
-      const start = new Date("2026-03-20T01:30:00+05:30");
-      const diffMs = now.getTime() - start.getTime();
-      const hours = Math.floor(diffMs / (1000 * 60 * 60));
-      const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
+    // HARD FROZEN ARCHIVE TIME
+    const now = new Date("2026-04-09T18:00:00+05:30"); 
+    const start = new Date("2026-03-20T01:30:00+05:30");
+    const diffMs = now.getTime() - start.getTime();
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
 
-      setUptime(`${hours}h ${minutes}m`);
-    };
+    setUptime(`${hours}h ${minutes}m`);
+  }, []); // setInterval removed completely
 
-    updateUptime();
-    const interval = setInterval(updateUptime, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // 🧠 REALISTIC BURST ENGINE (10,000/day speed)
+  // 🧠 ENGINE MATH (ARCHIVED)
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
     const generateTick = () => {
-      const now = new Date(
-        new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
-      );
+      // HARD FROZEN ARCHIVE TIME
+      const now = new Date("2026-04-09T18:00:00+05:30"); 
 
-      // 🔥 FIX: Start time is now Midnight. This ensures it NEVER stalls, no matter what time it is.
+      // 🔥 Start time is Midnight.
       const startTime = new Date(now);
       startTime.setHours(0, 0, 0, 0); 
 
@@ -174,7 +165,7 @@ export default function Page() {
 
       const backlog = currentDetected - currentScrubbed;
       
-// ELECTION OVER: Agents sent home
+      // ELECTION OVER: Agents sent home
       setAgentLoad(0);
 
       // Risk level follows backlog size naturally
@@ -232,12 +223,13 @@ export default function Page() {
       setTodayReported(Math.max(0, Math.floor(todayBase * 0.92) + randomInt(-15, 15)));
       setTodayScrubbed(Math.max(0, Math.floor(todayBase * 0.80) + randomInt(-20, 20)));
 
-// ELECTION OVER: Engine paused. 
+      // ELECTION OVER: Engine paused. 
       // const nextTick = randomInt(5000, 12000);
       // timeoutId = setTimeout(generateTick, nextTick);
     };
 
-    generateTick(); // It will fire exactly once on load to calculate final math, then stop forever.
+    generateTick(); 
+    // It will fire exactly once on load to calculate final math, then stop forever.
 
     return () => clearTimeout(timeoutId);
   }, []);
@@ -267,7 +259,7 @@ export default function Page() {
                   setTimeout(() => {
                     setLoggedIn(true);
                     setIsAuthenticating(false);
-                  }, 1500); 
+                  }, 1500);
                 } else {
                   alert("⚠️ Unauthorized Node Access Denied");
                 }
@@ -423,7 +415,7 @@ export default function Page() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl flex justify-between items-center">
+             <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl flex justify-between items-center">
               <div>
                 <h2 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Active Agents</h2>
                 <div className="text-2xl">{agents}</div>
@@ -445,11 +437,11 @@ export default function Page() {
             </div>
 
             <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl opacity-75">
-  <h2 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Current Protocol</h2>
-  <div className="text-xl mt-1 font-bold text-gray-500">
-    STANDBY: ELECTION CONCLUDED
-  </div>
-</div>
+              <h2 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Current Protocol</h2>
+              <div className="text-xl mt-1 font-bold text-gray-500">
+                STANDBY: ELECTION CONCLUDED
+              </div>
+            </div>
           </div>
 
         </>
