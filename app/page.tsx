@@ -1,240 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-type Alert = {
-  time: string;
-  keyword: string;
-  severity: string;
-  source: string;
-  location: string;
-};
-
-// Regional hubs relevant to Assam/NE for geographical context
-const locations = ["Guwahati", "Sivasagar", "Jorhat", "Dibrugarh", "Nagaon", "Silchar", "Tezpur", "Bongaigaon"];
-
-const keywords = [
-  "পাগল","দালাল","চুমা বাবা","গৰু","ঠগবাজ",
-  "ফটুৱা","নিলৰ্জ","বেইমান",
-  "কুকুৰ","ছাগলী","গাধা","চেলেকা",
-  "মক্কেল","ভণ্ড","মিঞা দালাল"
-];
-
-// Restricted strictly to the Facebook ecosystem
-const sources = ["FB Live", "FB Page", "FB Group", "FB Reel", "FB Post"];
-
-function randomInt(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-const severityOrder = {
-  CRITICAL: 4,
-  HIGH: 3,
-  MEDIUM: 2,
-  LOW: 1
-};
+import { useState } from "react";
 
 export default function Page() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [password, setPassword] = useState("");
 
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [risk, setRisk] = useState(65);
-  const [prediction, setPrediction] = useState(99); // Pegged high
+  // 🛑 HARDCODED FINAL ELECTION NUMBERS (Directly from your screenshot)
+  const detected = 47486;
+  const reported = 43690;
+  const scrubbed = 37964;
 
-  // Scaled up baseline numbers to new requested 40,123 base
-  const [detected, setDetected] = useState(40123);
-  const [reported, setReported] = useState(36913); // Approx 92%
-  const [scrubbed, setScrubbed] = useState(32098); // Approx 80%
+  const todayDetected = 7351;
+  const todayReported = 6762;
+  const todayScrubbed = 5880;
 
-  const [todayDetected, setTodayDetected] = useState(0);
-  const [todayReported, setTodayReported] = useState(0);
-  const [todayScrubbed, setTodayScrubbed] = useState(0);
-
-  const [agentLoad, setAgentLoad] = useState(100); // Pegged high
-  const [topTags, setTopTags] = useState<any[]>([]);
-
-  // 800 Agents deployed
+  const risk = 40;
+  const prediction = 98;
   const agents = 800;
-  const dailyRate = 10000;
-  
-  const [uptime, setUptime] = useState("");
+  const agentLoad = 0; // Agents sent home
+  const uptime = "496h 10m"; // Frozen uptime
 
-  // 🔥 PRELOAD ALERTS (ARCHIVED)
-  useEffect(() => {
-    // HARD FROZEN ARCHIVE TIME
-    const now = new Date("2026-04-09T18:00:00+05:30"); 
+  // 🛑 HARDCODED FINAL ALERTS (Frozen at ~5:40 PM)
+  const alerts = [
+    { time: "5:40:03 PM", keyword: "মিঞা দালাল", severity: "MEDIUM", source: "FB Live", location: "Sivasagar" },
+    { time: "5:39:48 PM", keyword: "নিলৰ্জ", severity: "MEDIUM", source: "FB Group", location: "Bongaigaon" },
+    { time: "5:39:33 PM", keyword: "ঠগবাজ", severity: "MEDIUM", source: "FB Group", location: "Nagaon" },
+    { time: "5:38:33 PM", keyword: "চুমা বাবা", severity: "HIGH", source: "FB Reel", location: "Dibrugarh" },
+    { time: "5:38:18 PM", keyword: "চুমা বাবা", severity: "MEDIUM", source: "FB Live", location: "Nagaon" },
+    { time: "5:38:03 PM", keyword: "চেলেকা", severity: "HIGH", source: "FB Reel", location: "Silchar" },
+    { time: "5:37:48 PM", keyword: "চেলেকা", severity: "HIGH", source: "FB Live", location: "Nagaon" },
+    { time: "5:37:33 PM", keyword: "দালাল", severity: "MEDIUM", source: "FB Post", location: "Dibrugarh" },
+  ];
 
-    const initialAlerts = [];
+  // 🛑 HARDCODED TOP NARRATIVES
+  const topTags = [
+    { key: "নিলৰ্জ", count: 2 },
+    { key: "মিঞা দালাল", count: 2 },
+    { key: "চুমা বাবা", count: 2 },
+    { key: "চেলেকা", count: 2 },
+  ];
 
-    for (let i = 0; i < 12; i++) {
-      initialAlerts.push({
-        time: new Date(now.getTime() - i * 15000).toLocaleTimeString(),
-        keyword: keywords[randomInt(0, keywords.length - 1)],
-        severity: ["LOW", "MEDIUM", "HIGH", "CRITICAL"][randomInt(0, 3)],
-        source: sources[randomInt(0, sources.length - 1)],
-        location: locations[randomInt(0, locations.length - 1)]
-      });
-    }
-
-    initialAlerts.sort(
-      (a, b) =>
-        severityOrder[b.severity as keyof typeof severityOrder] -
-        severityOrder[a.severity as keyof typeof severityOrder]
-    );
-
-    const map: any = {};
-    initialAlerts.forEach((a) => {
-      map[a.keyword] = (map[a.keyword] || 0) + 1;
-    });
-
-    const tags = Object.entries(map)
-      .map(([key, count]: any) => ({ key, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 4);
-
-    setTopTags(tags);
-    setAlerts(initialAlerts);
-  }, []);
-
-  // 🕒 UPTIME TRACKER (ARCHIVED)
-  useEffect(() => {
-    // HARD FROZEN ARCHIVE TIME
-    const now = new Date("2026-04-09T18:00:00+05:30"); 
-    const start = new Date("2026-03-20T01:30:00+05:30");
-    const diffMs = now.getTime() - start.getTime();
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
-
-    setUptime(`${hours}h ${minutes}m`);
-  }, []); // setInterval removed completely
-
-  // 🧠 ENGINE MATH (ARCHIVED)
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-
-    const generateTick = () => {
-      // HARD FROZEN ARCHIVE TIME
-      const now = new Date("2026-04-09T18:00:00+05:30"); 
-
-      // 🔥 Start time is Midnight.
-      const startTime = new Date(now);
-      startTime.setHours(0, 0, 0, 0); 
-
-      const endTime = new Date(now);
-      endTime.setHours(23, 59, 59, 0); 
-      
-      const startValue = 40123; // New Requested Baseline
-      const endValue = 40123 + dailyRate;
-
-      let currentDetected = endValue;
-
-      if (now <= endTime) {
-        const progress = Math.max(
-          0,
-          (now.getTime() - startTime.getTime()) /
-          (endTime.getTime() - startTime.getTime())
-        );
-        
-        currentDetected = Math.floor(
-          startValue + progress * (endValue - startValue)
-        );
-      } else {
-        const extraTime = now.getTime() - endTime.getTime();
-        const perMs = dailyRate / (24 * 60 * 60 * 1000);
-        const extraGrowth = Math.floor(extraTime * perMs);
-        currentDetected = endValue + extraGrowth;
-      }
-
-      setDetected(currentDetected);
-
-      // DATA JITTER: Math safeguards applied
-      const currentReported = Math.max(
-        0,
-        Math.floor(currentDetected * 0.92) + randomInt(-15, 15)
-      );
-
-      const currentScrubbed = Math.min(
-        currentReported,
-        Math.max(0, Math.floor(currentDetected * 0.80) + randomInt(-25, 25))
-      );
-
-      setReported(currentReported);
-      setScrubbed(currentScrubbed);
-
-      const backlog = currentDetected - currentScrubbed;
-      
-      // ELECTION OVER: Agents sent home
-      setAgentLoad(0);
-
-      // Risk level follows backlog size naturally
-      setRisk(Math.min(90, Math.max(40, Math.floor(backlog / 500))));
-
-      // ELECTION EVE OVERRIDE: Force Prediction to redline at 98-99%
-      setPrediction(randomInt(98, 99));
-
-      // ALERTS GENERATION
-      const keyword = keywords[randomInt(0, keywords.length - 1)];
-      const severity = ["LOW", "MEDIUM", "HIGH", "CRITICAL"][randomInt(0, 3)];
-      const source = sources[randomInt(0, sources.length - 1)];
-      const location = locations[randomInt(0, locations.length - 1)];
-
-      setAlerts((prev) => {
-        const updated = [
-          {
-            time: now.toLocaleTimeString(),
-            keyword,
-            severity,
-            source,
-            location, 
-          },
-          ...prev,
-        ].slice(0, 12); 
-
-        updated.sort(
-          (a, b) =>
-            severityOrder[b.severity as keyof typeof severityOrder] -
-            severityOrder[a.severity as keyof typeof severityOrder]
-        );
-
-        const map: any = {};
-        updated.forEach((a) => {
-          map[a.keyword] = (map[a.keyword] || 0) + 1;
-        });
-
-        const tags = Object.entries(map)
-          .map(([key, count]: any) => ({ key, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 4);
-
-        setTopTags(tags);
-        return updated;
-      });
-
-      // 📊 TODAY LOGIC
-      const startOfDay = new Date(now);
-      startOfDay.setHours(0, 0, 0, 0);
-      const elapsedMs = now.getTime() - startOfDay.getTime();
-      const progress = Math.max(0, Math.min(1, elapsedMs / (24 * 60 * 60 * 1000)));
-      const todayBase = Math.floor(dailyRate * progress);
-
-      setTodayDetected(Math.max(0, todayBase + randomInt(-20, 20)));
-      setTodayReported(Math.max(0, Math.floor(todayBase * 0.92) + randomInt(-15, 15)));
-      setTodayScrubbed(Math.max(0, Math.floor(todayBase * 0.80) + randomInt(-20, 20)));
-
-      // ELECTION OVER: Engine paused. 
-      // const nextTick = randomInt(5000, 12000);
-      // timeoutId = setTimeout(generateTick, nextTick);
-    };
-
-    generateTick(); 
-    // It will fire exactly once on load to calculate final math, then stop forever.
-
-    return () => clearTimeout(timeoutId);
-  }, []);
-
-  // 🖥️ UI RENDER (Fully Responsive & Styled)
+  // 🖥️ UI RENDER (Fully Static)
   return (
     <div className="bg-black min-h-screen text-white p-3 md:p-6 font-mono">
       {!loggedIn ? (
@@ -426,10 +234,10 @@ export default function Page() {
             <div className="bg-zinc-900 border border-gray-800 p-4 rounded-xl">
               <h2 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Agent Load Capacity</h2>
               <div className="flex items-center gap-3">
-                <div className="text-2xl text-red-500">{agentLoad}%</div>
+                <div className="text-2xl text-green-500">{agentLoad}%</div>
                 <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
                   <div 
-                    className={`h-full ${agentLoad > 85 ? 'bg-red-500' : 'bg-yellow-500'}`} 
+                    className={`h-full bg-green-500`} 
                     style={{ width: `${agentLoad}%` }}
                   ></div>
                 </div>
